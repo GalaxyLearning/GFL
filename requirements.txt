@@ -1,0 +1,5 @@
+torchvision==0.4.1
+requests==2.22.0
+torch==1.3.0
+Flask==1.1.1
+Werkzeug==0.16.0
