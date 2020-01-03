@@ -34,7 +34,8 @@ class StrategyFactory(object):
 
 class TrainStrategyFatorcy(StrategyFactory):
 
-    def __init__(self, optimizer, learning_rate, loss_function, batch_size, epoch):
+    def __init__(self, optimizer=RunTimeStrategy.OPTIM_SGD, learning_rate=0.01, loss_function=RunTimeStrategy.NLL_LOSS,
+                 batch_size=0, epoch=10):
         super(StrategyFactory, self).__init__()
         self.optimizer = optimizer
         self.learning_rate = learning_rate
@@ -62,7 +63,7 @@ class TrainStrategyFatorcy(StrategyFactory):
         if optimizer in optim_strategies:
             self.optimizer = optimizer.value
         else:
-            raise exceptions.GLException("optimizer strategy not found")
+            raise exceptions.PFLException("optimizer strategy not found")
 
     def get_optimizer(self):
         return self.optimizer
@@ -78,7 +79,7 @@ class TrainStrategyFatorcy(StrategyFactory):
         if loss_function in loss_functions:
             self.loss_function = loss_function.value
         else:
-            raise exceptions.GLException("loss strategy not found")
+            raise exceptions.PFLException("loss strategy not found")
 
     def get_loss_function(self):
         return self.loss_function
@@ -95,11 +96,7 @@ class TrainStrategyFatorcy(StrategyFactory):
     def get_epoch(self):
         return self.epoch
 
-    # def set_aggregate_strategy(self, aggregate_strategy):
-    #     self.aggregate_strategy = aggregate_strategy
-    #
-    # def get_aggregate_strategy(self):
-    #     return self.aggregate_strategy
+
 
 
 class TestStrategyFactory(StrategyFactory):

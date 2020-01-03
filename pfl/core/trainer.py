@@ -230,7 +230,7 @@ class TrainDistillationStrategy(TrainNormalStrategy):
         return acc / len(dataloader.dataset)
 
 class TrainStandloneNormalStrategy(TrainNormalStrategy):
-    def __init__(self, job, data, fed_step, client_id):
+    def  __init__(self, job, data, fed_step, client_id):
         super(TrainStandloneNormalStrategy, self).__init__(job, data, fed_step, client_id)
 
     def train(self):

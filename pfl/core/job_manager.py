@@ -6,20 +6,24 @@ import inspect
 from pfl.entity import runtime_config
 from pfl.entity.job import Job
 from pfl.utils.utils import JobUtils
-from pfl.core.strategy import WorkModeStrategy
+from pfl.core.strategy import WorkModeStrategy, FederateStrategy
 
 lock = threading.RLock()
+
+JOB_PATH = os.path.join(os.path.abspath("."), "res", "jobs_server")
+MODEL_PATH = os.path.join(os.path.abspath("."), "res", "models")
 
 
 class JobManager(object):
 
-    def __init__(self, job_path):
-        self.job_path = job_path
+    def __init__(self):
+        self.job_path = JOB_PATH
 
-    def generate_job(self, work_mode, train_code_strategy, fed_strategy, model, distillation_alpha):
+    def generate_job(self, work_mode=WorkModeStrategy.WORKMODE_STANDALONE, train_strategy=None,
+                     fed_strategy=FederateStrategy.FED_AVG, model=None, distillation_alpha=None):
         with lock:
             # server_host, job_id, train_strategy, train_model, train_model_class_name, fed_strategy, iterations, distillation_alpha
-            job = Job(None, JobUtils.generate_job_id(), train_code_strategy, inspect.getsourcefile(model),
+            job = Job(None, JobUtils.generate_job_id(), train_strategy, inspect.getsourcefile(model),
                       model.__name__, fed_strategy, distillation_alpha)
             if work_mode == WorkModeStrategy.WORKMODE_STANDALONE:
                 job.set_server_host("localhost:8080")
@@ -28,11 +32,11 @@ class JobManager(object):
 
             return job
 
-    def submit_job(self, job, model, model_path):
+    def submit_job(self, job, model):
 
         with lock:
             # create model dir of this job
-            job_model_dir = os.path.join(model_path, "models_{}".format(job.get_job_id()))
+            job_model_dir = os.path.join(MODEL_PATH, "models_{}".format(job.get_job_id()))
             if not os.path.exists(job_model_dir):
                 os.makedirs(job_model_dir)
             torch.save(model.state_dict(), os.path.join(job_model_dir, "init_model_pars_{}".format(job.get_job_id())))

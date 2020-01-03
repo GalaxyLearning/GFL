@@ -8,10 +8,6 @@ CLIENT_PORT = 8081
 CLIENT_ID = 0
 
 
-def start_trainer(work_mode, client_id, client_ip, client_port, server_url, data):
-    TrainerController(work_mode, data, str(client_id), client_ip, str(client_port), server_url, 5).start()
-    # print(os.path.abspath("."))
-
 
 if __name__ == "__main__":
     mnist_data = datasets.MNIST("./mnist_data", download=True, train=True, transform=transforms.Compose([
@@ -19,6 +15,6 @@ if __name__ == "__main__":
         transforms.Normalize((0.13066062,), (0.30810776,))
     ]))
 
-    # start_trainer(WorkModeStrategy.WORKMODE_STANDALONE, CLIENT_ID, mnist_data)
-
-    start_trainer(WorkModeStrategy.WORKMODE_CLUSTER, CLIENT_ID, CLIENT_IP, CLIENT_PORT, SERVER_URL, mnist_data)
+    TrainerController(work_mode=WorkModeStrategy.WORKMODE_CLUSTER, data=mnist_data, client_id=CLIENT_ID,
+                      client_ip=CLIENT_IP, client_port=CLIENT_PORT,
+                      server_url=SERVER_URL, concurrent_num=3).start()

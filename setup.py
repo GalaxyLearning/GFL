@@ -13,7 +13,7 @@ setup(
     description="A Federated Learning Framework Based on pytorch",
     long_description='',
     license="Apache-2.0",
-    url="https://github.com/ZJU-DistributedAI/pflaxyLearning",
+    url="https://github.com/GalaxyLearning/PFL",
     packages=find_packages(),
     classifiers=[
         'Intended Audience :: Developers',
