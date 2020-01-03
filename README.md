@@ -6,7 +6,7 @@ In addition to the traditional federate learning algorithm, PFL also provides a 
 based on model distillation. Developers can choose different federated learning algorithm to train their model.
 
 
-##Framework Design
+## Framework Design
 ![imgaes](resource//pictures//framework_design.png)
 > The framework design reference PaddleFL
 
@@ -29,13 +29,14 @@ temporary model parameters from various FLClients.
 `Model distillation` as our federated learning algorithm, then the FLClient is also responsible for model distillation.
 
 
-##Install And Quick Start Guide
-###Install PFL Framework
+## Install And Quick Start Guide
+
+### Install PFL Framework
 ```python
 pip install pfl
 ```
 
-###Quick Start Guide
+### Quick Start Guide
 
 As a FLServer, we need to run fl_model.py to generate FL Job and then run fl_server.py.<br>
 As a FLClient, we just need to run fl_client.py.
