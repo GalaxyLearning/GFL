@@ -116,10 +116,15 @@ FEDERATE_STRATEGY = FederateStrategy.FED_AVG
 
 if __name__ == "__main__":
 
-    FlStandaloneServer(FEDERATE_STRATEGY).start()
+    FLStandaloneServer(FEDERATE_STRATEGY).start()
 
 ```
 #### Cluster work mode
+> In cluster work mode we suggest you set FederateStrategy as `FederateStrategy.FED_AVG` to avoid some error in one situation which
+> you both have FedAvg jobs and FedDistillation jobs, Because FLServer in FedDistillation work mode will not start an aggregator.
+>   
+
+
 fl_model.py
 
 ```python
@@ -202,6 +207,6 @@ API_VERSION = '/api/version'
 
 if __name__ == "__main__":
 
-    FlClusterServer(FEDERATE_STRATEGY, IP, PORT, API_VERSION).start()
+    FLClusterServer(FEDERATE_STRATEGY, IP, PORT, API_VERSION).start()
 ```
 
