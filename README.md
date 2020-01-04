@@ -120,7 +120,7 @@ if __name__ == "__main__":
 
 ```
 #### Cluster work mode
-> In cluster work mode we suggest you set FederateStrategy as `FederateStrategy.FED_AVG` to avoid some error in one situation which
+> In cluster work mode we suggest you set FederateStrategy as `FederateStrategy.FED_AVG` in FLServer at `fl_server.py` to avoid some error in one situation which
 > you both have FedAvg jobs and FedDistillation jobs, Because FLServer in FedDistillation work mode will not start an aggregator.
 >   
 
