@@ -38,5 +38,5 @@ if __name__ == "__main__":
     job_manager = JobManager()
     job = job_manager.generate_job(work_mode=strategy.WorkModeStrategy.WORKMODE_CLUSTER,
                                    train_strategy=train_code_strategy,
-                                   fed_strategy=strategy.FederateStrategy.FED_DISTILLATION, model=Net, distillation_alpha=0.5)
+                                   fed_strategy=strategy.FederateStrategy.FED_AVG, model=Net)
     job_manager.submit_job(job, model)
