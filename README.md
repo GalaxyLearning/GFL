@@ -1,4 +1,4 @@
-# Galaxy Learning Framework
+# Galaxy Learning System
 
 Galaxy learning is a federated learning system based on blockchain and PFL(Federated learning framework based on pytorch). 
 At present, the PFL part is open-source first, and the blockchain part will be open-source soon. 
@@ -6,7 +6,7 @@ In addition to the traditional federate learning algorithm, PFL also provides a 
 based on model distillation. Developers can choose different federated learning algorithm to train their model.
 
 
-## Framework Design
+## PFL Framework Design
 ![imgaes](resource//pictures//framework_design.png)
 > The framework design reference PaddleFL
 
