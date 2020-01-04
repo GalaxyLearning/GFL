@@ -1,3 +1,18 @@
+# Copyright (c) 2019 GalaxyLearning Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import os
 import os
 import copy
 import torch
@@ -17,18 +32,29 @@ THRESHOLD = 0.5
 
 
 class TrainStrategy(object):
+    """
+    TrainStrategy is the root class of all train strategy classes
+    """
+
     def __init__(self, client_id):
         self.client_id = client_id
         self.fed_step = {}
         self.job_iter_dict = {}
         self.job_path = JOB_PATH
-        self.logger = LoggerFactory.getLogger("TrainStrategy", logging.INFO)
+
 
     def _parse_optimizer(self, optimizer, model, lr):
         if optimizer == RunTimeStrategy.OPTIM_SGD.value:
             return torch.optim.SGD(model.parameters(), lr, momentum=0.5)
 
     def _compute_loss(self, loss_function, output, label):
+        """
+        Return the loss according to the loss_function
+        :param loss_function:
+        :param output:
+        :param label:
+        :return:
+        """
         if loss_function == RunTimeStrategy.NLL_LOSS.value:
             loss = F.nll_loss(output, label)
         elif loss_function == RunTimeStrategy.KLDIV_LOSS.value:
@@ -36,21 +62,35 @@ class TrainStrategy(object):
         return loss
 
     def _create_job_models_dir(self, client_id, job_id):
-        # create local model dir
+        """
+        Create local temporary model directory according to client_id and job_id
+        :param client_id:
+        :param job_id:
+        :return:
+        """
         local_model_dir = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id), "models_{}".format(client_id))
         if not os.path.exists(local_model_dir):
             os.makedirs(local_model_dir)
         return local_model_dir
 
     def _load_job_model(self, job_id, job_model_class_name):
-        # job_model_path = os.path.abspath(".") + "\\" + LOCAL_MODEL_BASE_PATH + "models_{}\\{}_init_model.py".format(
-        #     job_id, job_id)
+        """
+        Load model object according to job_id and model's class name
+        :param job_id:
+        :param job_model_class_name:
+        :return:
+        """
         module = importlib.import_module("res.models.models_{}.init_model_{}".format(job_id, job_id),
                                          "init_model_{}".format(job_id))
         model_class = getattr(module, job_model_class_name)
         return model_class()
 
     def _find_latest_aggregate_model_pars(self, job_id):
+        """
+        Return the latest aggregated model's parameters
+        :param job_id:
+        :return:
+        """
         job_model_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id), "{}".format(AGGREGATE_PATH))
         if not os.path.exists(job_model_path):
             os.makedirs(job_model_path)
@@ -68,6 +108,10 @@ class TrainStrategy(object):
 
 
 class TrainNormalStrategy(TrainStrategy):
+    """
+    TrainNormalStrategy provides traditional training method and some necessary methods
+    """
+
     def __init__(self, job, data, fed_step, client_id):
         super(TrainNormalStrategy, self).__init__(client_id)
         self.job = job
@@ -75,13 +119,19 @@ class TrainNormalStrategy(TrainStrategy):
         self.job_model_path = os.path.join(os.path.abspath("."), "models_{}".format(job.get_job_id()))
         self.fed_step = fed_step
 
+
     def train(self):
         pass
 
-    def start(self):
-        pass
-
     def _train(self, train_model, job_models_path, fed_step):
+        """
+        Traditional training method
+        :param train_model:
+        :param job_models_path:
+        :param fed_step:
+        :return:
+        """
+        # TODO: transfer training code to c++ and invoked by python using pybind11
         train_strategy = self.job.get_train_strategy()
         dataloader = torch.utils.data.DataLoader(self.data, batch_size=train_strategy.get_batch_size(), shuffle=True,
                                                  num_workers=1,
@@ -105,7 +155,6 @@ class TrainNormalStrategy(TrainStrategy):
 
             if idx % 200 == 0:
                 self.logger.info("train_loss: {}".format(loss.item()))
-                # print("loss: ", loss.item())
 
         torch.save(train_model.state_dict(),
                    os.path.join(job_models_path, "tmp_parameters_{}".format(fed_step)))
@@ -119,7 +168,6 @@ class TrainNormalStrategy(TrainStrategy):
             self._prepare_job_model(job)
 
     def _prepare_job_model(self, job):
-        # prepare job model py file
         job_model_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job.get_job_id()))
         job_init_model_path = os.path.join(job_model_path, "init_model_{}.py".format(job.get_job_id()))
         with open(job.get_train_model(), "r") as model_f:
@@ -167,11 +215,21 @@ class TrainNormalStrategy(TrainStrategy):
 
 
 class TrainDistillationStrategy(TrainNormalStrategy):
+    """
+    TrainDistillationStrategy provides distillation training method and some necessary methods
+    """
+
     def __init__(self, job, data, fed_step, client_id):
         super(TrainDistillationStrategy, self).__init__(job, data, fed_step, client_id)
         self.job_model_path = os.path.join(os.path.abspath("."), "res", "models", "models_{}".format(job.get_job_id()))
 
     def _load_other_models_pars(self, job_id, fed_step):
+        """
+        Load model's pars from other clients in fed_step round
+        :param job_id:
+        :param fed_step:
+        :return:
+        """
         job_model_base_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id))
         other_models_pars = []
         fed_step += 1
@@ -187,11 +245,25 @@ class TrainDistillationStrategy(TrainNormalStrategy):
         return other_models_pars, connected_clients_num
 
     def _calc_rate(self, received, total):
+        """
+        Calculate response rate of clients
+        :param received:
+        :param total:
+        :return:
+        """
         if total == 0:
             return 0
         return received / total
 
     def _train_with_kl(self, train_model, other_models_pars, job_models_path):
+        """
+        Distillation training method
+        :param train_model:
+        :param other_models_pars:
+        :param job_models_path:
+        :return:
+        """
+        # TODO: transfer training code to c++ and invoked by python using pybind11
         train_strategy = self.job.get_train_strategy()
 
         dataloader = torch.utils.data.DataLoader(self.data, batch_size=train_strategy.get_batch_size(), shuffle=True,
@@ -229,9 +301,15 @@ class TrainDistillationStrategy(TrainNormalStrategy):
                    os.path.join(job_models_path, "tmp_parameters_{}".format(self.fed_step[self.job.get_job_id()] + 1)))
         return acc / len(dataloader.dataset)
 
+
 class TrainStandloneNormalStrategy(TrainNormalStrategy):
-    def  __init__(self, job, data, fed_step, client_id):
+    """
+    TrainStandloneNormalStrategy is responsible for controlling the process of traditional training in standalone mode
+    """
+
+    def __init__(self, job, data, fed_step, client_id):
         super(TrainStandloneNormalStrategy, self).__init__(job, data, fed_step, client_id)
+        self.logger = LoggerFactory.getLogger("TrainStandloneNormalStrategy", logging.INFO)
 
     def train(self):
         while True:
@@ -259,17 +337,21 @@ class TrainStandloneNormalStrategy(TrainNormalStrategy):
                 self.logger.info("job_{} is training, Aggregator strategy: {}".format(self.job.get_job_id(),
                                                                                       self.job.get_aggregate_strategy()))
                 runtime_config.EXEC_JOB_LIST.append(self.job.get_job_id())
-                self.acc = self._train(job_model, job_models_path, self.fed_step.get(self.job.get_job_id))
+                self.acc = self._train(job_model, job_models_path, self.fed_step.get(self.job.get_job_id()))
                 self.logger.info("job_{} {}th train accuracy: {}".format(self.job.get_job_id(),
                                                                          self.fed_step.get(self.job.get_job_id()),
                                                                          self.acc))
 
 
 class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
+    """
+    TrainStandloneDistillationStrategy is responsible for controlling the process of distillation training in standalone mode
+    """
+
     def __init__(self, job, data, fed_step, client_id):
         super(TrainStandloneDistillationStrategy, self).__init__(job, data, fed_step, client_id)
         self.train_model = self._load_job_model(job.get_job_id(), job.get_train_model_class_name())
-
+        self.logger = LoggerFactory.getLogger("TrainStandloneDistillationStrategy", logging.INFO)
     def train(self):
         while True:
             self.fed_step[self.job.get_job_id()] = 0 if self.fed_step.get(
@@ -285,31 +367,38 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
                 break
             aggregate_file, _ = self._find_latest_aggregate_model_pars(self.job.get_job_id())
             other_model_pars, connected_clients_num = self._load_other_models_pars(self.job.get_job_id(),
-                                                                     self.fed_step[self.job.get_job_id()])
+                                                                                   self.fed_step[self.job.get_job_id()])
             job_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
             job_models_path = self._create_job_models_dir(self.client_id, self.job.get_job_id())
 
+            self.logger.info("job_{} is training, Aggregator strategy: {}".format(self.job.get_job_id(),
+                                                                                  self.job.get_aggregate_strategy()))
             if other_model_pars is not None and connected_clients_num and self._calc_rate(len(other_model_pars),
-                                                                connected_clients_num) >= THRESHOLD:
+                                                                                          connected_clients_num) >= THRESHOLD:
+
                 self.logger.info("model distillating....")
                 self.fed_step[self.job.get_job_id()] = self.fed_step.get(self.job.get_job_id()) + 1
                 self.acc = self._train_with_kl(job_model, other_model_pars, job_models_path)
                 self.logger.info("model distillation success")
             else:
                 init_model_pars_dir = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(self.job.get_job_id()),
-                                                    "models_{}".format(self.client_id))
+                                                   "models_{}".format(self.client_id))
                 if not os.path.exists(os.path.join(init_model_pars_dir, "tmp_parameters_{}".format(1))):
                     job_model.load_state_dict(torch.load(aggregate_file))
                     self._train(job_model, init_model_pars_dir, 1)
 
 
-
 class TrainMPCNormalStrategy(TrainNormalStrategy):
+    """
+    TrainMPCNormalStrategy is responsible for controlling the process of traditional training in cluster mode
+    """
+
     def __init__(self, job, data, fed_step, client_ip, client_port, server_url, client_id):
         super(TrainMPCNormalStrategy, self).__init__(job, data, fed_step, client_id)
         self.server_url = server_url
         self.client_ip = client_ip
         self.client_port = client_port
+        self.logger = LoggerFactory.getLogger("TrainMPCNormalStrategy", logging.INFO)
 
     def train(self):
         while True:
@@ -333,6 +422,8 @@ class TrainMPCNormalStrategy(TrainNormalStrategy):
                 self.logger.info("load {} parameters".format(aggregate_file))
                 job_model.load_state_dict(torch.load(aggregate_file))
                 self.fed_step[self.job.get_job_id()] = fed_step
+                self.logger.info("job_{} is training, Aggregator strategy: {}".format(self.job.get_job_id(),
+                                                                                      self.job.get_aggregate_strategy()))
                 self.acc = self._train(job_model, job_models_path, self.fed_step.get(self.job.get_job_id()))
                 files = self._prepare_upload_client_model_pars(self.job.get_job_id(), self.client_id,
                                                                self.fed_step.get(self.job.get_job_id()))
@@ -344,11 +435,16 @@ class TrainMPCNormalStrategy(TrainNormalStrategy):
 
 
 class TrainMPCDistillationStrategy(TrainDistillationStrategy):
+    """
+    TrainMPCDistillationStrategy is responsible for controlling the process of distillation training in cluster mode
+    """
+
     def __init__(self, job, data, fed_step, client_ip, client_port, server_url, client_id):
         super(TrainMPCDistillationStrategy, self).__init__(job, data, fed_step, client_id)
         self.client_ip = client_ip
         self.client_port = client_port
         self.server_url = server_url
+        self.logger = LoggerFactory.getLogger("TrainMPCDistillationStrategy", logging.INFO)
 
     def train(self):
         while True:
@@ -378,13 +474,18 @@ class TrainMPCDistillationStrategy(TrainDistillationStrategy):
                     self._write_bfile_to_local(response, parameter_path)
             other_model_pars, _ = self._load_other_models_pars(self.job.get_job_id(),
                                                                self.fed_step.get(self.job.get_job_id()))
+
+            self.logger.info("job_{} is training, Aggregator strategy: {}".format(self.job.get_job_id(),
+                                                                                  self.job.get_aggregate_strategy()))
             if other_model_pars is not None and self._calc_rate(len(other_model_pars),
                                                                 len(connected_clients_id)) >= THRESHOLD:
+
                 self.logger.info("model distillating....")
                 self.fed_step[self.job.get_job_id()] = self.fed_step.get(self.job.get_job_id()) + 1
                 self.acc = self._train_with_kl(job_model, other_model_pars,
-                                    os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(self.job.get_job_id()),
-                                                 "models_{}".format(self.client_id)))
+                                               os.path.join(LOCAL_MODEL_BASE_PATH,
+                                                            "models_{}".format(self.job.get_job_id()),
+                                                            "models_{}".format(self.client_id)))
                 self.logger.info("model distillation success")
                 files = self._prepare_upload_client_model_pars(self.job.get_job_id(), self.client_id,
                                                                self.fed_step.get(self.job.get_job_id()) + 1)
@@ -394,7 +495,8 @@ class TrainMPCDistillationStrategy(TrainDistillationStrategy):
             else:
                 job_model_client_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(self.job.get_job_id()),
                                                      "models_{}".format(self.client_id))
-                if not os.path.exists(os.path.join(job_model_client_path, "tmp_parameters_{}".format(self.fed_step.get(self.job.get_job_id()) + 1))):
+                if not os.path.exists(os.path.join(job_model_client_path, "tmp_parameters_{}".format(
+                        self.fed_step.get(self.job.get_job_id()) + 1))):
                     self._train(job_model, job_model_client_path, self.fed_step.get(self.job.get_job_id()) + 1)
                     files = self._prepare_upload_client_model_pars(self.job.get_job_id(), self.client_id,
                                                                    self.fed_step.get(self.job.get_job_id()) + 1)

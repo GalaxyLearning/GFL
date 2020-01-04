@@ -1,10 +1,23 @@
+# Copyright (c) 2019 GalaxyLearning Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import os
-import threading
 import requests
 import logging
 from concurrent.futures import ThreadPoolExecutor
 from pfl.core import communicate_client
-from pfl.utils.utils import JobUtils, LoggerFactory
+from pfl.utils.utils import JobUtils, LoggerFactory, CyclicTimer
 from pfl.core.strategy import WorkModeStrategy, FederateStrategy
 from pfl.core.trainer import TrainStandloneNormalStrategy, TrainMPCNormalStrategy, \
     TrainStandloneDistillationStrategy, TrainMPCDistillationStrategy
@@ -13,6 +26,9 @@ JOB_PATH = os.path.join(os.path.abspath("."), "res", "jobs_client")
 
 
 class TrainerController(object):
+    """
+    TrainerController is responsible for choosing a apprpriate train strategy for corresponding job
+    """
     def __init__(self, work_mode=WorkModeStrategy.WORKMODE_STANDALONE, data=None, client_id=0, client_ip="",
                  client_port=8081, server_url="", concurrent_num=5):
         self.work_mode = work_mode
@@ -45,10 +61,11 @@ class TrainerController(object):
                 print("connect to parameter server fail, please check your internet")
 
     def _trainer_standalone_exec(self):
-        t = threading.Timer(5, self._trainer_standalone_exec_impl)
+        t = CyclicTimer(5, self._trainer_standalone_exec_impl)
         t.start()
 
     def _trainer_standalone_exec_impl(self):
+        self.logger.info("searching for new jobs...")
         JobUtils.get_job_from_remote(None, self.job_path)
         job_list = JobUtils.list_all_jobs(self.job_path, self.job_iter_dict)
         for job in job_list:
@@ -65,11 +82,11 @@ class TrainerController(object):
                 self.run(self.job_train_strategy.get(job.get_job_id()))
 
     def _trainer_mpc_exec(self):
-        t = threading.Timer(5, self._trainer_mpc_exec_impl)
+        t = CyclicTimer(5, self._trainer_mpc_exec_impl)
         t.start()
 
     def _trainer_mpc_exec_impl(self):
-
+        self.logger.info("searching for new jobs...")
         JobUtils.get_job_from_remote(self.server_url, self.job_path)
         job_list = JobUtils.list_all_jobs(self.job_path, self.job_iter_dict)
         for job in job_list:

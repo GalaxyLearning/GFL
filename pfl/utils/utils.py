@@ -1,3 +1,18 @@
+# Copyright (c) 2019 GalaxyLearning Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
 import os
 import json
 import threading
@@ -14,6 +29,9 @@ LOG_FILE = os.path.join(os.path.abspath("."), "log.txt")
 
 
 class JobIdCount(object):
+    """
+    JobIdCount is responsible for generating a number synchrnized.
+    """
     lock = threading.RLock()
 
     def __init__(self, init_value):
@@ -25,17 +43,16 @@ class JobIdCount(object):
             return self.value
 
 
-class Utils(object):
-    def __init__(self):
-        pass
-
 
 jobCount = JobIdCount(init_value=0)
 
 
-class JobUtils(Utils):
+class JobUtils(object):
+    """
+    JobUtils provides some tool methods of operating jobs
+    """
     def __init__(self):
-        super(JobUtils, self).__init__()
+        pass
 
     @staticmethod
     def generate_job_id():
@@ -59,6 +76,13 @@ class JobUtils(Utils):
 
     @staticmethod
     def get_job_from_remote(server_url, job_path):
+        """
+        Get jobs from remote
+        If server_url is None, searching jobs from local
+        :param server_url:
+        :param job_path:
+        :return:
+        """
         if not os.path.exists(job_path):
             os.mkdir(job_path)
         if server_url is None:
@@ -82,6 +106,7 @@ class JobUtils(Utils):
 
 
 class JobEncoder(json.JSONEncoder):
+
     def default(self, o):
         if isinstance(o, Job):
             return {
@@ -142,6 +167,17 @@ class LoggerFactory(object):
         logger.addHandler(file_handler)
         logger.addHandler(console_handler)
         return logger
+
+
+class CyclicTimer(threading.Timer):
+    def run(self):
+        while not self.finished.is_set():
+            self.function(*self.args, **self.kwargs)
+            self.finished.wait(self.interval)
+
+    def cancel(self):
+        self.finshed.set()
+
 
 
 def return_data_decorator(func):

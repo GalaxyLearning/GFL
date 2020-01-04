@@ -1,11 +1,27 @@
+# Copyright (c) 2019 GalaxyLearning Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import torch
 import threading
 import pickle
+import logging
 import os, json
 import inspect
 from pfl.entity import runtime_config
 from pfl.entity.job import Job
-from pfl.utils.utils import JobUtils
+from pfl.exceptions.fl_expection import PFLException
+from pfl.utils.utils import JobUtils, LoggerFactory
 from pfl.core.strategy import WorkModeStrategy, FederateStrategy
 
 lock = threading.RLock()
@@ -15,14 +31,29 @@ MODEL_PATH = os.path.join(os.path.abspath("."), "res", "models")
 
 
 class JobManager(object):
+    """
+    JobManager provides job related operations
+    """
 
     def __init__(self):
         self.job_path = JOB_PATH
+        self.logger = LoggerFactory.getLogger("JobManager", logging.INFO)
 
     def generate_job(self, work_mode=WorkModeStrategy.WORKMODE_STANDALONE, train_strategy=None,
                      fed_strategy=FederateStrategy.FED_AVG, model=None, distillation_alpha=None):
+        """
+        Generate job with user-defined strategy
+        :param work_mode:
+        :param train_strategy:
+        :param fed_strategy:
+        :param model:
+        :param distillation_alpha:
+        :return: job object
+        """
         with lock:
             # server_host, job_id, train_strategy, train_model, train_model_class_name, fed_strategy, iterations, distillation_alpha
+            if fed_strategy == FederateStrategy.FED_DISTILLATION and distillation_alpha is None:
+                raise PFLException("generate_job() missing 1 positoonal argument: 'distillation_alpha'")
             job = Job(None, JobUtils.generate_job_id(), train_strategy, inspect.getsourcefile(model),
                       model.__name__, fed_strategy, distillation_alpha)
             if work_mode == WorkModeStrategy.WORKMODE_STANDALONE:
@@ -33,7 +64,12 @@ class JobManager(object):
             return job
 
     def submit_job(self, job, model):
-
+        """
+        Submit job
+        :param job:
+        :param model:
+        :return:
+        """
         with lock:
             # create model dir of this job
             job_model_dir = os.path.join(MODEL_PATH, "models_{}".format(job.get_job_id()))
@@ -51,7 +87,7 @@ class JobManager(object):
             with open(os.path.join(self.job_path, "job_{}".format(job.get_job_id())), "wb") as f:
                 pickle.dump(job, f)
 
-            print("job {} added successfully".format(job.get_job_id()))
+            self.logger.info("job {} added successfully".format(job.get_job_id()))
 
     def prepare_job(self, job):
         with lock:

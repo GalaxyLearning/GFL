@@ -33,7 +33,7 @@ temporary model parameters from various FLClients.
 
 ### Install PFL Framework
 ```python
-pip install pfl
+pip install pfl >= 0.1.2
 ```
 
 ### Quick Start Guide
@@ -109,7 +109,7 @@ if __name__ == "__main__":
 
 fl_server.py
 ```python
-from pfl.core.server import FlStandaloneServer
+from pfl.core.server import FLStandaloneServer
 from pfl.core.strategy import FederateStrategy
 
 FEDERATE_STRATEGY = FederateStrategy.FED_AVG
@@ -192,7 +192,7 @@ if __name__ == "__main__":
 ```
 fl_server.py
 ```python
-from pfl.core.server import FlClusterServer
+from pfl.core.server import FLClusterServer
 from pfl.core.strategy import FederateStrategy
 
 FEDERATE_STRATEGY = FederateStrategy.FED_DISTILLATION
