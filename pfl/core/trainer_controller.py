@@ -17,7 +17,7 @@ import requests
 import logging
 from concurrent.futures import ThreadPoolExecutor
 from pfl.core import communicate_client
-from pfl.utils.utils import JobUtils, LoggerFactory, CyclicTimer
+from pfl.utils.utils import JobUtils, LoggerFactory, CyclicTimer, ModelUtils
 from pfl.core.strategy import WorkModeStrategy, FederateStrategy
 from pfl.core.trainer import TrainStandloneNormalStrategy, TrainMPCNormalStrategy, \
     TrainStandloneDistillationStrategy, TrainMPCDistillationStrategy
@@ -29,21 +29,23 @@ class TrainerController(object):
     """
     TrainerController is responsible for choosing a apprpriate train strategy for corresponding job
     """
-    def __init__(self, work_mode=WorkModeStrategy.WORKMODE_STANDALONE, data=None, client_id=0, client_ip="",
-                 client_port=8081, server_url="", concurrent_num=5):
+
+    def __init__(self, work_mode=WorkModeStrategy.WORKMODE_STANDALONE, models=None, data=None, client_id=0,
+                 client_ip="",
+                 client_port=8081, server_url="", curve=False, concurrent_num=5):
         self.work_mode = work_mode
         self.data = data
         self.client_id = str(client_id)
         self.concurrent_num = concurrent_num
         self.trainer_executor_pool = ThreadPoolExecutor(self.concurrent_num)
         self.job_path = JOB_PATH
+        self.models = models
         self.fed_step = {}
-        self.job_iter_dict = {}
         self.job_train_strategy = {}
-        self.is_finish = True
         self.client_ip = client_ip
         self.client_port = str(client_port)
         self.server_url = server_url
+        self.curve = curve
         self.logger = LoggerFactory.getLogger("TrainerController", logging.INFO)
 
     def start(self):
@@ -67,18 +69,23 @@ class TrainerController(object):
     def _trainer_standalone_exec_impl(self):
         self.logger.info("searching for new jobs...")
         JobUtils.get_job_from_remote(None, self.job_path)
-        job_list = JobUtils.list_all_jobs(self.job_path, self.job_iter_dict)
+        job_list = JobUtils.list_all_jobs(self.job_path)
         for job in job_list:
             if self.job_train_strategy.get(job.get_job_id()) is None:
                 # print(job.get_aggregate_strategy())
+                pfl_model = ModelUtils.get_model_by_job_id(self.models, job.get_job_id())
                 if job.get_aggregate_strategy() == FederateStrategy.FED_AVG.value:
                     self.job_train_strategy[job.get_job_id()] = TrainStandloneNormalStrategy(job, self.data,
                                                                                              self.fed_step,
-                                                                                             self.client_id)
+                                                                                             self.client_id,
+                                                                                             pfl_model,
+                                                                                             self.curve)
                 else:
                     self.job_train_strategy[job.get_job_id()] = TrainStandloneDistillationStrategy(job, self.data,
                                                                                                    self.fed_step,
-                                                                                                   self.client_id)
+                                                                                                   self.client_id,
+                                                                                                   pfl_model,
+                                                                                                   self.curve)
                 self.run(self.job_train_strategy.get(job.get_job_id()))
 
     def _trainer_mpc_exec(self):
@@ -88,21 +95,26 @@ class TrainerController(object):
     def _trainer_mpc_exec_impl(self):
         self.logger.info("searching for new jobs...")
         JobUtils.get_job_from_remote(self.server_url, self.job_path)
-        job_list = JobUtils.list_all_jobs(self.job_path, self.job_iter_dict)
+        job_list = JobUtils.list_all_jobs(self.job_path)
         for job in job_list:
             if self.job_train_strategy.get(job.get_job_id()) is None:
+                pfl_model = ModelUtils.get_model_by_job_id(self.models, job.get_job_id())
                 if job.get_aggregate_strategy() == FederateStrategy.FED_AVG.value:
                     self.job_train_strategy[job.get_job_id()] = self.job_train_strategy[
                         job.get_job_id()] = TrainMPCNormalStrategy(job, self.data, self.fed_step, self.client_ip,
-                                                                   self.client_port, self.server_url, self.client_id)
+                                                                   self.client_port, self.server_url, self.client_id,
+                                                                   pfl_model, self.curve)
                 else:
                     self.job_train_strategy[job.get_job_id()] = TrainMPCDistillationStrategy(job, self.data,
                                                                                              self.fed_step,
                                                                                              self.client_ip,
                                                                                              self.client_port,
                                                                                              self.server_url,
-                                                                                             self.client_id)
+                                                                                             self.client_id,
+                                                                                             pfl_model,
+                                                                                             self.curve)
                 self.run(self.job_train_strategy.get(job.get_job_id()))
 
     def run(self, trainer):
         trainer.train()
+

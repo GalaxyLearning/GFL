@@ -27,8 +27,7 @@ class FederateStrategy(Enum):
     FED_AVG = "fed_avg"
     FED_DISTILLATION = "fed_distillation"
 
-
-class RunTimeStrategy(Enum):
+class LossStrategy(Enum):
     L1_LOSS = "L1loss"
     MSE_LOSS = "MSELoss"
     CROSSENTROPY_LOSS = "CrossEntropyLoss"
@@ -38,31 +37,35 @@ class RunTimeStrategy(Enum):
     BCE_LOSS = "BCELoss"
     BCEWITHLOGITS_Loss = "BCEWithLogitsLoss"
     MARGINRANKING_Loss = "MarginRankinpfloss"
+
+
+class OptimizerStrategy(Enum):
     OPTIM_SGD = "SGD"
     OPTIM_ADAM = "Adam"
 
 
-class StrategyFactory(object):
+
+
+class Strategy(object):
     def __init__(self):
         pass
 
 
-class TrainStrategyFatorcy(StrategyFactory):
 
-    def __init__(self, optimizer=RunTimeStrategy.OPTIM_SGD, learning_rate=0.01, loss_function=RunTimeStrategy.NLL_LOSS,
-                 batch_size=0, epoch=10):
-        super(StrategyFactory, self).__init__()
+class TrainStrategy(Strategy):
+
+    def __init__(self, optimizer=None, loss_function=LossStrategy.NLL_LOSS,
+                 batch_size=0):
+        super(TrainStrategy, self).__init__()
         self.optimizer = optimizer
-        self.learning_rate = learning_rate
         self.loss_function = loss_function
         self.batch_size = batch_size
-        self.epoch = epoch
 
     def get_loss_functions(self):
-        loss_functions = [RunTimeStrategy.L1_LOSS, RunTimeStrategy.MSE_LOSS, RunTimeStrategy.CROSSENTROPY_LOSS,
-                          RunTimeStrategy.NLL_LOSS, RunTimeStrategy.POISSIONNLL_LOSS,
-                          RunTimeStrategy.KLDIV_LOSS, RunTimeStrategy.BCE_LOSS, RunTimeStrategy.BCEWITHLOGITS_Loss,
-                          RunTimeStrategy.MARGINRANKING_Loss]
+        loss_functions = [LossStrategy.L1_LOSS, LossStrategy.MSE_LOSS, LossStrategy.CROSSENTROPY_LOSS,
+                          LossStrategy.NLL_LOSS, LossStrategy.POISSIONNLL_LOSS,
+                          LossStrategy.KLDIV_LOSS, LossStrategy.BCE_LOSS, LossStrategy.BCEWITHLOGITS_Loss,
+                          LossStrategy.MARGINRANKING_Loss]
         return loss_functions
 
     def get_fed_strategies(self):
@@ -70,7 +73,7 @@ class TrainStrategyFatorcy(StrategyFactory):
         return fed_strategies
 
     def get_optim_strategies(self):
-        optim_strategies = [RunTimeStrategy.OPTIM_SGD, RunTimeStrategy.OPTIM_ADAM]
+        optim_strategies = [OptimizerStrategy.OPTIM_SGD, OptimizerStrategy.OPTIM_ADAM]
         return optim_strategies
 
     def set_optimizer(self, optimizer):
@@ -83,11 +86,6 @@ class TrainStrategyFatorcy(StrategyFactory):
     def get_optimizer(self):
         return self.optimizer
 
-    def set_learning_rate(self, learning_rate):
-        self.learning_rate = learning_rate
-
-    def get_learning_rate(self):
-        return self.learning_rate
 
     def set_loss_function(self, loss_function):
         loss_functions = self.get_loss_functions()
@@ -105,16 +103,9 @@ class TrainStrategyFatorcy(StrategyFactory):
     def get_batch_size(self):
         return self.batch_size
 
-    def set_epoch(self, epoch):
-        self.epoch = epoch
-
-    def get_epoch(self):
-        return self.epoch
 
 
-
-
-class TestStrategyFactory(StrategyFactory):
+class TestStrategy(Strategy):
 
     def __init__(self):
-        super(TestStrategyFactory, self).__init__()
+        super(TestStrategy, self).__init__()

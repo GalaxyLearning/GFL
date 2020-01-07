@@ -25,15 +25,10 @@ class Net(nn.Module):
 
 
 if __name__ == "__main__":
-    train_code_strategy = strategy.TrainStrategyFatorcy(optimizer=strategy.RunTimeStrategy.OPTIM_SGD,
-                                                        learning_rate=0.01,
-                                                        loss_function=strategy.RunTimeStrategy.NLL_LOSS, batch_size=32,
-                                                        epoch=3)
 
     model = Net()
 
     job_manager = JobManager()
     job = job_manager.generate_job(work_mode=strategy.WorkModeStrategy.WORKMODE_STANDALONE,
-                                   train_strategy=train_code_strategy,
-                                   fed_strategy=strategy.FederateStrategy.FED_DISTILLATION, model=Net, distillation_alpha=0.5)
+                                   fed_strategy=strategy.FederateStrategy.FED_AVG, epoch=32, model=Net)
     job_manager.submit_job(job, model)

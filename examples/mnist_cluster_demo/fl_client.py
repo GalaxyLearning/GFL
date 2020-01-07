@@ -17,4 +17,4 @@ if __name__ == "__main__":
 
     TrainerController(work_mode=WorkModeStrategy.WORKMODE_CLUSTER, data=mnist_data, client_id=CLIENT_ID,
                       client_ip=CLIENT_IP, client_port=CLIENT_PORT,
-                      server_url=SERVER_URL, concurrent_num=3).start()
+                      server_url=SERVER_URL, curve=True, concurrent_num=3).start()
