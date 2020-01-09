@@ -28,7 +28,7 @@ class FLClient(object):
         self.base_model_path = BASE_MODEL_PATH
 
 
-    def get_remote_models(self, server_url=None):
+    def get_remote_pfl_models(self, server_url=None):
         if server_url is None:
             return self._get_models_from_local()
         else:

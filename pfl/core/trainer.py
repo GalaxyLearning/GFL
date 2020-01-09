@@ -23,7 +23,8 @@ import importlib
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 from pfl.entity import runtime_config
-from pfl.core.strategy import OptimizerStrategy, LossStrategy
+from pfl.exceptions.fl_expection import PFLException
+from pfl.core.strategy import OptimizerStrategy, LossStrategy, SchedulerStrategy
 from pfl.utils.utils import LoggerFactory
 
 JOB_PATH = os.path.join(os.path.abspath("."), "res", "jobs_client")
@@ -42,7 +43,6 @@ class TrainStrategy(object):
         self.fed_step = {}
         self.job_iter_dict = {}
         self.job_path = JOB_PATH
-
 
     def _parse_optimizer(self, optimizer, model, lr):
         if optimizer == OptimizerStrategy.OPTIM_SGD.value:
@@ -124,7 +124,6 @@ class TrainNormalStrategy(TrainStrategy):
         self.model = model
         self.curve = curve
 
-
     def train(self):
         pass
 
@@ -137,15 +136,21 @@ class TrainNormalStrategy(TrainStrategy):
         :return:
         """
         # TODO: transfer training code to c++ and invoked by python using pybind11
-        dataloader = torch.utils.data.DataLoader(self.data, batch_size=train_model.get_train_strategy().get_batch_size(), shuffle=True,
+        dataloader = torch.utils.data.DataLoader(self.data,
+                                                 batch_size=train_model.get_train_strategy().get_batch_size(),
+                                                 shuffle=True,
                                                  num_workers=1,
                                                  pin_memory=True)
 
-        optimizer = train_model.get_train_strategy().get_optimizer()
+
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         acc = 0
         model = train_model.get_model()
+        if train_model.get_train_strategy().get_optimizer() is not None:
+            optimizer = self._generate_new_optimizer(model, train_model.get_train_strategy().get_optimizer())
+        else:
+            optimizer = self._generate_new_scheduler(model, train_model.get_train_strategy().get_scheduler())
         for idx, (batch_data, batch_target) in enumerate(dataloader):
             batch_data, batch_target = batch_data.to(device), batch_target.to(device)
             model = model.to(device)
@@ -220,7 +225,75 @@ class TrainNormalStrategy(TrainStrategy):
                 for line in r_f.readlines():
                     w_f.write(line)
 
-    def draw_curve(self):
+    def _generate_new_optimizer(self, model, optimizer):
+        state_dict = optimizer.state_dict()
+        optimizer_class = optimizer.__class__
+        params = state_dict['param_groups'][0]
+        if not isinstance(optimizer, torch.optim.Optimizer):
+            raise PFLException("optimizer get wrong type value")
+
+        if isinstance(optimizer, torch.optim.SGD):
+            return optimizer_class(model.parameters(), lr=params['lr'], momentum=params['momentum'],
+                                   dampening=params['dampening'], weight_decay=params['weight_decay'],
+                                   nesterov=params['nesterov'])
+        else:
+            return optimizer_class(model.parameters(), lr=params['lr'], betas=params['betas'],
+                                   eps=params['eps'], weight_decay=params['weight_decay'],
+                                   amsgrad=params['amsgrad'])
+
+    def _generate_new_scheduler(self, model, scheduler):
+        scheduler_names = []
+        for scheduler_item in SchedulerStrategy.__members__.items():
+            scheduler_names.append(scheduler_item.value)
+        if scheduler.__class__.__name__ not in scheduler_names:
+            raise PFLException("optimizer get wrong type value")
+        optimizer = scheduler.__getattribute__("optimizer")
+        params = scheduler.state_dict()
+        new_optimizer = self._generate_new_optimizer(model, optimizer)
+        if isinstance(scheduler, torch.optim.lr_scheduler.CyclicLR):
+            return torch.optim.lr_scheduler.CyclicLR(new_optimizer, base_lr=params['base_lrs'],
+                                                     max_lr=params['max_lrs'],
+                                                     step_size_up=params['total_size'] * params['step_ratio'],
+                                                     step_size_down=params['total_size'] - (params['total_size'] *
+                                                                                            params['step_ratio']),
+                                                     mode=params['mode'], gamma=params['gamma'],
+                                                     scale_fn=params['scale_fn'], scale_mode=params['scale_mode'],
+                                                     cycle_momentum=params['cycle_momentum'],
+                                                     base_momentum=params['base_momentums'],
+                                                     max_momentum=params['max_momentums'],
+                                                     last_epoch=(-1 if params['last_epoch'] == 0 else params[
+                                                         'last_epoch']))
+        elif isinstance(scheduler, torch.optim.lr_scheduler.CosineAnnealingLR):
+            return torch.optim.lr_scheduler.CosineAnnealingLR(new_optimizer, T_max=params['T_max'],
+                                                              eta_min=params['eta_min'],
+                                                              last_epoch=(-1 if params['last_epoch'] == 0 else params[
+                                                                  'last_epoch']))
+        elif isinstance(scheduler, torch.optim.lr_scheduler.ExponentialLR):
+            return torch.optim.lr_scheduler.ExponentialLR(new_optimizer, gamma=params['gamma'],
+                                                          last_epoch=(-1 if params['last_epoch'] == 0 else params[
+                                                              'last_epoch']))
+        elif isinstance(scheduler, torch.optim.lr_scheduler.LambdaLR):
+            return torch.optim.lr_scheduler.LambdaLR(new_optimizer, lr_lambda=params['lr_lamdas'],
+                                                     last_epoch=(-1 if params['last_epoch'] == 0 else params[
+                                                         'last_epoch']))
+        elif isinstance(scheduler, torch.optim.lr_scheduler.MultiStepLR):
+            return torch.optim.lr_scheduler.MultiStepLR(new_optimizer, milestones=params['milestones'],
+                                                        gamma=params['gammas'],
+                                                        last_epoch=(-1 if params['last_epoch'] == 0 else params[
+                                                            'last_epoch']))
+        elif isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+            return torch.optim.lr_scheduler.ReduceLROnPlateau(new_optimizer, mode=params['mode'],
+                                                              factor=params['factor'], patience=params['patience'],
+                                                              verbose=params['verbose'], threshold=params['threshold'],
+                                                              threshold_mode=params['threshold_mode'],
+                                                              cooldown=params['cooldown'], min_lr=params['min_lrs'],
+                                                              eps=params['eps'])
+        elif isinstance(scheduler, torch.optim.lr_scheduler.StepLR):
+            return torch.optim.lr_scheduler.StepLR(new_optimizer, step_size=params['step_size'], gamma=params['gamma'],
+                                                   last_epoch=(-1 if params['last_epoch'] == 0 else params[
+                                                       'last_epoch']))
+
+    def _draw_curve(self):
         loss_x = range(0, self.job.get_epoch())
         accuracy_x = range(0, self.job.get_epoch())
         loss_y = self.loss_list
@@ -237,11 +310,6 @@ class TrainNormalStrategy(TrainStrategy):
         plt.ylabel("Train accuracy")
         plt.xlabel("epoch")
         plt.show()
-
-
-
-
-
 
 
 class TrainDistillationStrategy(TrainNormalStrategy):
@@ -295,7 +363,9 @@ class TrainDistillationStrategy(TrainNormalStrategy):
         """
         # TODO: transfer training code to c++ and invoked by python using pybind11
 
-        dataloader = torch.utils.data.DataLoader(self.data, batch_size=train_model.get_train_strategy().get_batch_size(), shuffle=True,
+        dataloader = torch.utils.data.DataLoader(self.data,
+                                                 batch_size=train_model.get_train_strategy().get_batch_size(),
+                                                 shuffle=True,
                                                  num_workers=1,
                                                  pin_memory=True)
         optimizer = train_model.get_train_strategy().get_optimizer()
@@ -346,7 +416,8 @@ class TrainStandloneNormalStrategy(TrainNormalStrategy):
             if self.fed_step.get(self.job.get_job_id()) is not None and self.fed_step.get(
                     self.job.get_job_id()) == self.job.get_epoch():
                 self.logger.info("job_{} completed".format(self.job.get_job_id()))
-                self.draw_curve()
+                if self.curve is True:
+                    self._draw_curve()
                 break
             elif self.fed_step.get(self.job.get_job_id()) is not None and self.fed_step.get(
                     self.job.get_job_id()) > self.job.get_epoch():
@@ -361,7 +432,10 @@ class TrainStandloneNormalStrategy(TrainNormalStrategy):
                 # job_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
                 if aggregate_file is not None:
                     self.logger.info("load {} parameters".format(aggregate_file))
-                    self.model.get_model().load_state_dict(torch.load(aggregate_file))
+                    new_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
+                    model_pars = torch.load(aggregate_file)
+                    new_model.load_state_dict(model_pars)
+                    self.model.set_model(new_model)
                 job_models_path = self._create_job_models_dir(self.client_id, self.job.get_job_id())
                 self.logger.info("job_{} is training, Aggregator strategy: {}".format(self.job.get_job_id(),
                                                                                       self.job.get_aggregate_strategy()))
@@ -381,6 +455,7 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
         super(TrainStandloneDistillationStrategy, self).__init__(job, data, fed_step, client_id, model, curve)
         self.train_model = self._load_job_model(job.get_job_id(), job.get_train_model_class_name())
         self.logger = LoggerFactory.getLogger("TrainStandloneDistillationStrategy", logging.INFO)
+
     def train(self):
         while True:
             self.fed_step[self.job.get_job_id()] = 0 if self.fed_step.get(
@@ -413,7 +488,10 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
                 init_model_pars_dir = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(self.job.get_job_id()),
                                                    "models_{}".format(self.client_id))
                 if not os.path.exists(os.path.join(init_model_pars_dir, "tmp_parameters_{}".format(1))):
-                    self.model.get_model().load_state_dict(torch.load(aggregate_file))
+                    new_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
+                    model_pars = torch.load(aggregate_file)
+                    new_model.load_state_dict(model_pars)
+                    self.model.set_model(new_model)
                     self._train(self.model, init_model_pars_dir, 1)
 
 
@@ -449,7 +527,10 @@ class TrainMPCNormalStrategy(TrainNormalStrategy):
                 job_models_path = self._create_job_models_dir(self.client_id, self.job.get_job_id())
                 # job_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
                 self.logger.info("load {} parameters".format(aggregate_file))
-                self.model.get_model().load_state_dict(torch.load(aggregate_file))
+                new_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
+                model_pars = torch.load(aggregate_file)
+                new_model.load_state_dict(model_pars)
+                self.model.set_model(new_model)
                 self.fed_step[self.job.get_job_id()] = fed_step
                 self.logger.info("job_{} is training, Aggregator strategy: {}".format(self.job.get_job_id(),
                                                                                       self.job.get_aggregate_strategy()))

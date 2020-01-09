@@ -13,9 +13,9 @@
 # limitations under the License.
 
 # federate strategies
+import torch
 from enum import Enum
-
-import pfl.exceptions.fl_expection as exceptions
+from pfl.exceptions.fl_expection import PFLException
 
 
 class WorkModeStrategy(Enum):
@@ -38,6 +38,13 @@ class LossStrategy(Enum):
     BCEWITHLOGITS_Loss = "BCEWithLogitsLoss"
     MARGINRANKING_Loss = "MarginRankinpfloss"
 
+class SchedulerStrategy(Enum):
+    CYCLICLR = "CyclicLR"
+    COSINEANNEALINGLR = "CosineAnnealingLR"
+    EXPONENTIALLR = "ExponentialLR"
+    LAMBDALR = "LambdaLR"
+    MULTISTEPLR = "ReduceLROnPlateau"
+    STEPLR = "StepLR"
 
 class OptimizerStrategy(Enum):
     OPTIM_SGD = "SGD"
@@ -54,37 +61,41 @@ class Strategy(object):
 
 class TrainStrategy(Strategy):
 
-    def __init__(self, optimizer=None, loss_function=LossStrategy.NLL_LOSS,
+    def __init__(self, optimizer=None, scheduler=None, loss_function=LossStrategy.NLL_LOSS,
                  batch_size=0):
         super(TrainStrategy, self).__init__()
         self.optimizer = optimizer
         self.loss_function = loss_function
         self.batch_size = batch_size
+        self.scheduler = scheduler
 
     def get_loss_functions(self):
-        loss_functions = [LossStrategy.L1_LOSS, LossStrategy.MSE_LOSS, LossStrategy.CROSSENTROPY_LOSS,
-                          LossStrategy.NLL_LOSS, LossStrategy.POISSIONNLL_LOSS,
-                          LossStrategy.KLDIV_LOSS, LossStrategy.BCE_LOSS, LossStrategy.BCEWITHLOGITS_Loss,
-                          LossStrategy.MARGINRANKING_Loss]
-        return loss_functions
+        return LossStrategy.__members__.items()
 
     def get_fed_strategies(self):
-        fed_strategies = [FederateStrategy.FED_AVG, FederateStrategy.FED_DISTILLATION]
-        return fed_strategies
+        return FederateStrategy.__members__.items()
 
     def get_optim_strategies(self):
-        optim_strategies = [OptimizerStrategy.OPTIM_SGD, OptimizerStrategy.OPTIM_ADAM]
-        return optim_strategies
+        return OptimizerStrategy.__members__.items()
+
+    def get_scheduler_strategies(self):
+        return SchedulerStrategy.__members__.items()
 
     def set_optimizer(self, optimizer):
         optim_strategies = self.get_optim_strategies()
         if optimizer in optim_strategies:
-            self.optimizer = optimizer.value
+            self.optimizer = optimizer
         else:
-            raise exceptions.PFLException("optimizer strategy not found")
+            raise PFLException("optimizer strategy not found")
 
     def get_optimizer(self):
         return self.optimizer
+
+    def set_scheduler(self, scheduler):
+        self.scheduler = scheduler
+
+    def get_scheduler(self):
+        return self.scheduler
 
 
     def set_loss_function(self, loss_function):
@@ -92,7 +103,7 @@ class TrainStrategy(Strategy):
         if loss_function in loss_functions:
             self.loss_function = loss_function.value
         else:
-            raise exceptions.PFLException("loss strategy not found")
+            raise PFLException("loss strategy not found")
 
     def get_loss_function(self):
         return self.loss_function

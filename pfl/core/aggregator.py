@@ -107,7 +107,7 @@ class FedAvgAggregator(Aggregator):
                 self._exec(job_model_pars, self.base_model_path, job.get_job_id(), fed_step)
                 self.fed_step[job.get_job_id()] = fed_step
                 WAITING_BROADCAST_AGGREGATED_JOB_ID_LIST.append(job.get_job_id())
-                if job.get_train_strategy().get_epoch() <= self.fed_step[job.get_job_id()]:
+                if job.get_epoch() <= self.fed_step[job.get_job_id()]:
                     self._save_final_model_pars(job.get_job_id(), os.path.join(self.base_model_path,
                                                                                "models_{}".format(job.get_job_id()),
                                                                                "tmp_aggregate_pars"),
@@ -127,7 +127,7 @@ class FedAvgAggregator(Aggregator):
         tmp_aggregate_path = os.path.join(base_model_path, "models_{}".format(job_id),
                                           "{}_{}".format(LOCAL_AGGREGATE_FILE, fed_step))
         if not os.path.exists(tmp_aggregate_dir):
-            os.makedirs(tmp_aggregate_path)
+            os.makedirs(tmp_aggregate_dir)
         torch.save(avg_model_par, tmp_aggregate_path)
 
         self.logger.info("job: {} the {}th round parameters aggregated successfully!".format(job_id, fed_step))

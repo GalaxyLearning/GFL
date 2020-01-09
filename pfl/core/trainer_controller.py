@@ -15,6 +15,7 @@
 import os
 import requests
 import logging
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from pfl.core import communicate_client
 from pfl.utils.utils import JobUtils, LoggerFactory, CyclicTimer, ModelUtils
@@ -63,7 +64,7 @@ class TrainerController(object):
                 print("connect to parameter server fail, please check your internet")
 
     def _trainer_standalone_exec(self):
-        t = CyclicTimer(5, self._trainer_standalone_exec_impl)
+        t = threading.Timer(5, self._trainer_standalone_exec_impl)
         t.start()
 
     def _trainer_standalone_exec_impl(self):
@@ -89,7 +90,7 @@ class TrainerController(object):
                 self.run(self.job_train_strategy.get(job.get_job_id()))
 
     def _trainer_mpc_exec(self):
-        t = CyclicTimer(5, self._trainer_mpc_exec_impl)
+        t = threading.Timer(5, self._trainer_mpc_exec_impl)
         t.start()
 
     def _trainer_mpc_exec_impl(self):
