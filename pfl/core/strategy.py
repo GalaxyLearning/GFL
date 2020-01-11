@@ -13,9 +13,9 @@
 # limitations under the License.
 
 # federate strategies
+import torch
 from enum import Enum
-
-import pfl.exceptions.fl_expection as exceptions
+from pfl.exceptions.fl_expection import PFLException
 
 
 class WorkModeStrategy(Enum):
@@ -27,8 +27,7 @@ class FederateStrategy(Enum):
     FED_AVG = "fed_avg"
     FED_DISTILLATION = "fed_distillation"
 
-
-class RunTimeStrategy(Enum):
+class LossStrategy(Enum):
     L1_LOSS = "L1loss"
     MSE_LOSS = "MSELoss"
     CROSSENTROPY_LOSS = "CrossEntropyLoss"
@@ -38,63 +37,73 @@ class RunTimeStrategy(Enum):
     BCE_LOSS = "BCELoss"
     BCEWITHLOGITS_Loss = "BCEWithLogitsLoss"
     MARGINRANKING_Loss = "MarginRankinpfloss"
+
+class SchedulerStrategy(Enum):
+    CYCLICLR = "CyclicLR"
+    COSINEANNEALINGLR = "CosineAnnealingLR"
+    EXPONENTIALLR = "ExponentialLR"
+    LAMBDALR = "LambdaLR"
+    MULTISTEPLR = "ReduceLROnPlateau"
+    STEPLR = "StepLR"
+
+class OptimizerStrategy(Enum):
     OPTIM_SGD = "SGD"
     OPTIM_ADAM = "Adam"
 
 
-class StrategyFactory(object):
+
+
+class Strategy(object):
     def __init__(self):
         pass
 
 
-class TrainStrategyFatorcy(StrategyFactory):
 
-    def __init__(self, optimizer=RunTimeStrategy.OPTIM_SGD, learning_rate=0.01, loss_function=RunTimeStrategy.NLL_LOSS,
-                 batch_size=0, epoch=10):
-        super(StrategyFactory, self).__init__()
+class TrainStrategy(Strategy):
+
+    def __init__(self, optimizer=None, scheduler=None, loss_function=LossStrategy.NLL_LOSS,
+                 batch_size=0):
+        super(TrainStrategy, self).__init__()
         self.optimizer = optimizer
-        self.learning_rate = learning_rate
         self.loss_function = loss_function
         self.batch_size = batch_size
-        self.epoch = epoch
+        self.scheduler = scheduler
 
     def get_loss_functions(self):
-        loss_functions = [RunTimeStrategy.L1_LOSS, RunTimeStrategy.MSE_LOSS, RunTimeStrategy.CROSSENTROPY_LOSS,
-                          RunTimeStrategy.NLL_LOSS, RunTimeStrategy.POISSIONNLL_LOSS,
-                          RunTimeStrategy.KLDIV_LOSS, RunTimeStrategy.BCE_LOSS, RunTimeStrategy.BCEWITHLOGITS_Loss,
-                          RunTimeStrategy.MARGINRANKING_Loss]
-        return loss_functions
+        return LossStrategy.__members__.items()
 
     def get_fed_strategies(self):
-        fed_strategies = [FederateStrategy.FED_AVG, FederateStrategy.FED_DISTILLATION]
-        return fed_strategies
+        return FederateStrategy.__members__.items()
 
     def get_optim_strategies(self):
-        optim_strategies = [RunTimeStrategy.OPTIM_SGD, RunTimeStrategy.OPTIM_ADAM]
-        return optim_strategies
+        return OptimizerStrategy.__members__.items()
+
+    def get_scheduler_strategies(self):
+        return SchedulerStrategy.__members__.items()
 
     def set_optimizer(self, optimizer):
         optim_strategies = self.get_optim_strategies()
         if optimizer in optim_strategies:
-            self.optimizer = optimizer.value
+            self.optimizer = optimizer
         else:
-            raise exceptions.PFLException("optimizer strategy not found")
+            raise PFLException("optimizer strategy not found")
 
     def get_optimizer(self):
         return self.optimizer
 
-    def set_learning_rate(self, learning_rate):
-        self.learning_rate = learning_rate
+    def set_scheduler(self, scheduler):
+        self.scheduler = scheduler
 
-    def get_learning_rate(self):
-        return self.learning_rate
+    def get_scheduler(self):
+        return self.scheduler
+
 
     def set_loss_function(self, loss_function):
         loss_functions = self.get_loss_functions()
         if loss_function in loss_functions:
             self.loss_function = loss_function.value
         else:
-            raise exceptions.PFLException("loss strategy not found")
+            raise PFLException("loss strategy not found")
 
     def get_loss_function(self):
         return self.loss_function
@@ -105,16 +114,9 @@ class TrainStrategyFatorcy(StrategyFactory):
     def get_batch_size(self):
         return self.batch_size
 
-    def set_epoch(self, epoch):
-        self.epoch = epoch
-
-    def get_epoch(self):
-        return self.epoch
 
 
-
-
-class TestStrategyFactory(StrategyFactory):
+class TestStrategy(Strategy):
 
     def __init__(self):
-        super(TestStrategyFactory, self).__init__()
+        super(TestStrategy, self).__init__()

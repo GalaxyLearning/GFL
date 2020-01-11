@@ -23,7 +23,7 @@ import logging
 from json.decoder import WHITESPACE
 
 from pfl.entity.job import Job
-from pfl.core.strategy import TrainStrategyFatorcy
+from pfl.core.strategy import TrainStrategy
 
 LOG_FILE = os.path.join(os.path.abspath("."), "log.txt")
 
@@ -59,15 +59,13 @@ class JobUtils(object):
         return '{}{}'.format(datetime.datetime.now().strftime("%Y%m%d%H%M%S%f"), jobCount.incr(1))
 
     @staticmethod
-    def list_all_jobs(job_path, job_iter_dict):
+    def list_all_jobs(job_path):
         job_list = []
         for file in os.listdir(job_path):
             # print("job file: ", job_path+"\\"+file)
             with open(os.path.join(job_path, file), "rb") as f:
                 job = pickle.load(f)
                 job_list.append(job)
-                if job_iter_dict.get(job.get_job_id()) is None:
-                    job_iter_dict[job.get_job_id()] = 0
         return job_list
 
     @staticmethod
@@ -105,6 +103,15 @@ class JobUtils(object):
                     pickle.dump(job, job_f)
 
 
+class ModelUtils(object):
+    @staticmethod
+    def get_model_by_job_id(models, job_id):
+        for model in models:
+            if model.get_job_id() == job_id:
+                return model
+        return None
+
+
 class JobEncoder(json.JSONEncoder):
 
     def default(self, o):
@@ -112,11 +119,12 @@ class JobEncoder(json.JSONEncoder):
             return {
                 'job_id': o.get_job_id(),
                 'train_model': o.get_train_model(),
-                'train_strategy': json.dumps(o.get_train_strategy(), cls=TrainStrategyFatorcyEncoder),
+                'epoch': o.get_epoch(),
                 'train_model_class_name': o.get_train_model_class_name(),
                 'server_host': o.get_server_host(),
                 'aggregate_strategy': o.get_aggregate_strategy().value,
-                'distillation_alpha': o.get_distillation_alpha()
+                'distillation_alpha': o.get_distillation_alpha(),
+                'l2_dist': o.get_l2_dist()
             }
         return json.JSONEncoder.default(self, o)
 
@@ -124,33 +132,29 @@ class JobEncoder(json.JSONEncoder):
 class JobDecoder(json.JSONDecoder):
     def decode(self, s, _w=WHITESPACE.match):
         dict = super().decode(s)
-        # server_host, job_id, train_strategy, train_model, train_model_class_name, iterations
-        return Job(dict['server_host'], dict['job_id'],
-                   json.loads(dict['train_strategy'], cls=TrainStrategyFactoryDecoder), dict['train_model'],
+        return Job(dict['server_host'], dict['job_id'], dict['train_model'],
                    dict['train_model_class_name'],
-                   dict['aggregate_strategy'], dict['distillation_alpha'])
+                   dict['aggregate_strategy'], dict['epoch'], dict['distillation_alpha'], dict['l2_dist'])
 
-
-class TrainStrategyFatorcyEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, TrainStrategyFatorcy):
-            return {
-                'batch_size': o.get_batch_size(),
-                'epoch': o.get_epoch(),
-                # 'fed_strategies': o.get_fed_strategies(),
-                'learning_rate': o.get_learning_rate(),
-                'loss_function': o.get_loss_function().value,
-                'optimizer': o.get_optimizer().value
-            }
-        return json.JSONEncoder.default(self, o)
-
-
-class TrainStrategyFactoryDecoder(json.JSONDecoder):
-    def decode(self, s, _w=WHITESPACE.match):
-        dict = super().decode(s)
-        # optimizer, learning_rate, loss_function, batch_size, epoch
-        return TrainStrategyFatorcy(dict['optimizer'], dict['learning_rate'], dict['loss_function'],
-                                    dict['batch_size'], dict['epoch'])
+#
+# class TrainStrategyEncoder(json.JSONEncoder):
+#     def default(self, o):
+#         if isinstance(o, TrainStrategy):
+#             return {
+#                 'batch_size': o.get_batch_size(),
+#                 # 'fed_strategies': o.get_fed_strategies(),
+#                 'loss_function': o.get_loss_function().value,
+#                 'optimizer': o.get_optimizer().value
+#             }
+#         return json.JSONEncoder.default(self, o)
+#
+#
+# class TrainStrategyDecoder(json.JSONDecoder):
+#     def decode(self, s, _w=WHITESPACE.match):
+#         dict = super().decode(s)
+#         # optimizer, learning_rate, loss_function, batch_size, epoch
+#         return TrainStrategy(dict['optimizer'], dict['loss_function'],
+#                                     dict['batch_size'])
 
 
 class LoggerFactory(object):
