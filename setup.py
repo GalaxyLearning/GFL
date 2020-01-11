@@ -23,7 +23,7 @@ from setuptools import setup
 
 setup(
     name="pfl",
-    version="0.1.2",
+    version="0.1.3",
     author="Galaxy Learning Author",
     author_email="yifan_hu@zju.edu.cn",
     description="A Federated Learning Framework Based on pytorch",

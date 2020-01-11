@@ -33,7 +33,7 @@ temporary model parameters from various FLClients.
 
 ### Install PFL Framework
 ```python
-pip install pfl >= 0.1.2
+pip install pfl >= 0.1.3
 ```
 
 ### Quick Start Guide
