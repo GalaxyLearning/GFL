@@ -24,7 +24,6 @@ class Net(nn.Module):
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
         return x
-        #return F.softmax(x, dim=1)
 
 
 
@@ -34,5 +33,5 @@ if __name__ == "__main__":
     model = Net()
     job_manager = JobManager()
     job = job_manager.generate_job(work_mode=strategy.WorkModeStrategy.WORKMODE_CLUSTER,
-                                   fed_strategy=strategy.FederateStrategy.FED_AVG, epoch=3, model=Net)
+                                   fed_strategy=strategy.FederateStrategy.FED_DISTILLATION, epoch=3, model=Net, distillation_alpha=0.5, l2_dist=True)
     job_manager.submit_job(job, model)

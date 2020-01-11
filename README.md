@@ -67,29 +67,25 @@ class Net(nn.Module):
         x = x.view(-1, 4 * 4 * 50)
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
-        return F.softmax(x, dim=1)
+        return x
 
 
 if __name__ == "__main__":
-    train_code_strategy = strategy.TrainStrategyFatorcy(optimizer=strategy.RunTimeStrategy.OPTIM_SGD,
-                                                        learning_rate=0.01,
-                                                        loss_function=strategy.RunTimeStrategy.NLL_LOSS, batch_size=32,
-                                                        epoch=3)
 
     model = Net()
 
     job_manager = JobManager()
     job = job_manager.generate_job(work_mode=strategy.WorkModeStrategy.WORKMODE_STANDALONE,
-                                   train_strategy=train_code_strategy,
-                                   fed_strategy=strategy.FederateStrategy.FED_AVG, model=Net)
+                                   fed_strategy=strategy.FederateStrategy.FED_AVG, epoch=3, model=Net)
     job_manager.submit_job(job, model)
 
-    
 ```
 fl_client.py
 ```python
+import torch
 from torchvision import datasets, transforms
-from pfl.core.strategy import WorkModeStrategy
+from pfl.core.client import FLClient
+from pfl.core.strategy import WorkModeStrategy, TrainStrategy, LossStrategy
 from pfl.core.trainer_controller import TrainerController
 
 CLIENT_ID = 0
@@ -101,9 +97,17 @@ if __name__ == "__main__":
         transforms.ToTensor(),
         transforms.Normalize((0.13066062,), (0.30810776,))
     ]))
+    client = FLClient()
+    pfl_models = client.get_remote_pfl_models()
 
-    TrainerController(work_mode=WorkModeStrategy.WORKMODE_STANDALONE, data=mnist_data, client_id=CLIENT_ID,
-                      concurrent_num=3).start()
+    for pfl_model in pfl_models:
+        optimizer = torch.optim.SGD(pfl_model.get_model().parameters(), lr=0.01, momentum=0.5)
+        train_strategy = TrainStrategy(optimizer=optimizer, batch_size=32, loss_function=LossStrategy.NLL_LOSS)
+        pfl_model.set_train_strategy(train_strategy)
+
+    TrainerController(work_mode=WorkModeStrategy.WORKMODE_STANDALONE, models=pfl_models, data=mnist_data, client_id=CLIENT_ID,
+                      curve=True, concurrent_num=3).start()
+
 
 ```
 
@@ -117,6 +121,7 @@ FEDERATE_STRATEGY = FederateStrategy.FED_AVG
 if __name__ == "__main__":
 
     FLStandaloneServer(FEDERATE_STRATEGY).start()
+
 
 ```
 #### Cluster work mode
@@ -153,30 +158,28 @@ class Net(nn.Module):
         x = x.view(-1, 4 * 4 * 50)
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
-        return F.softmax(x, dim=1)
+        return x
 
 
 
 
 if __name__ == "__main__":
 
-    train_code_strategy = strategy.TrainStrategyFatorcy(optimizer=strategy.RunTimeStrategy.OPTIM_SGD,
-                                                        learning_rate=0.01,
-                                                        loss_function=strategy.RunTimeStrategy.NLL_LOSS, batch_size=32,
-                                                        epoch=3)
     model = Net()
     job_manager = JobManager()
     job = job_manager.generate_job(work_mode=strategy.WorkModeStrategy.WORKMODE_CLUSTER,
-                                   train_strategy=train_code_strategy,
-                                   fed_strategy=strategy.FederateStrategy.FED_AVG, model=Net, distillation_alpha=0.5)
+                                   fed_strategy=strategy.FederateStrategy.FED_DISTILLATION, epoch=3, model=Net, distillation_alpha=0.5, l2_dist=True)
     job_manager.submit_job(job, model)
+
 
 ```
 fl_client.py
 ```python
+import torch
+from pfl.core.client import FLClient
 from torchvision import datasets, transforms
-from pfl.core.strategy import WorkModeStrategy
 from pfl.core.trainer_controller import TrainerController
+from pfl.core.strategy import WorkModeStrategy, TrainStrategy, LossStrategy
 
 SERVER_URL = "http://127.0.0.1:9763"
 CLIENT_IP = "127.0.0.1"
@@ -191,16 +194,25 @@ if __name__ == "__main__":
         transforms.Normalize((0.13066062,), (0.30810776,))
     ]))
 
-    TrainerController(work_mode=WorkModeStrategy.WORKMODE_CLUSTER, data=mnist_data, client_id=CLIENT_ID,
+    client = FLClient()
+    pfl_models = client.get_remote_pfl_models(SERVER_URL)
+
+    for pfl_model in pfl_models:
+        optimizer = torch.optim.SGD(pfl_model.get_model().parameters(), lr=0.01, momentum=0.5)
+        train_strategy = TrainStrategy(optimizer=optimizer, batch_size=32, loss_function=LossStrategy.NLL_LOSS)
+        pfl_model.set_train_strategy(train_strategy)
+
+    TrainerController(work_mode=WorkModeStrategy.WORKMODE_CLUSTER, models=pfl_models, data=mnist_data, client_id=CLIENT_ID,
                       client_ip=CLIENT_IP, client_port=CLIENT_PORT,
-                      server_url=SERVER_URL, concurrent_num=3).start()
+                      server_url=SERVER_URL, curve=True, concurrent_num=3).start()
+
 ```
 fl_server.py
 ```python
 from pfl.core.server import FLClusterServer
 from pfl.core.strategy import FederateStrategy
 
-FEDERATE_STRATEGY = FederateStrategy.FED_DISTILLATION
+FEDERATE_STRATEGY = FederateStrategy.FED_AVG
 IP = '0.0.0.0'
 PORT = 9763
 API_VERSION = '/api/version'
@@ -208,5 +220,6 @@ API_VERSION = '/api/version'
 if __name__ == "__main__":
 
     FLClusterServer(FEDERATE_STRATEGY, IP, PORT, API_VERSION).start()
+
 ```
 
