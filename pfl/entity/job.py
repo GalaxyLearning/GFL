@@ -16,7 +16,7 @@
 class Job(object):
 
     def __init__(self, server_host, job_id, train_model, train_model_class_name, aggregate_strategy, epoch,
-                 distillation_alpha=None):
+                 distillation_alpha=None, l2_dist=False):
         self.server_host = server_host
         self.job_id = job_id
         self.epoch = epoch
@@ -24,6 +24,7 @@ class Job(object):
         self.train_model_class_name = train_model_class_name
         self.aggregate_strategy = aggregate_strategy
         self.alpha = distillation_alpha
+        self.l2_dist = l2_dist
 
     def set_server_host(self, server_host):
         self.server_host = server_host
@@ -66,3 +67,9 @@ class Job(object):
 
     def get_distillation_alpha(self):
         return self.alpha
+
+    def set_l2_dist(self, l2_dist):
+        self.l2_dist = l2_dist
+
+    def get_l2_dist(self):
+        return self.l2_dist

@@ -39,6 +39,7 @@ class FLClient(object):
         model_list = []
         JobUtils.get_job_from_remote(None, self.job_path)
         job_list = JobUtils.list_all_jobs(self.job_path)
+
         for job in job_list:
             model = self._get_model_from_job(job)
             pfl_model = Model()

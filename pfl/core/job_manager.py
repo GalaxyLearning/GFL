@@ -40,7 +40,7 @@ class JobManager(object):
         self.logger = LoggerFactory.getLogger("JobManager", logging.INFO)
 
     def generate_job(self, work_mode=WorkModeStrategy.WORKMODE_STANDALONE,
-                     fed_strategy=FederateStrategy.FED_AVG, epoch=0, model=None, distillation_alpha=None):
+                     fed_strategy=FederateStrategy.FED_AVG, epoch=0, model=None, distillation_alpha=None, l2_dist=False):
         """
         Generate job with user-defined strategy
         :param work_mode:
@@ -58,7 +58,8 @@ class JobManager(object):
                 raise PFLException("generate_job() missing 1 positoonal argument: 'epoch'")
 
             job = Job(None, JobUtils.generate_job_id(), inspect.getsourcefile(model),
-                      model.__name__, fed_strategy, epoch,  distillation_alpha)
+                      model.__name__, fed_strategy, epoch,  distillation_alpha=distillation_alpha, l2_dist=l2_dist)
+
             if work_mode == WorkModeStrategy.WORKMODE_STANDALONE:
                 job.set_server_host("localhost:8080")
             else:

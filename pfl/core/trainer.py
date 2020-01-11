@@ -59,7 +59,11 @@ class TrainStrategy(object):
         if loss_function == LossStrategy.NLL_LOSS:
             loss = F.nll_loss(output, label)
         elif loss_function == LossStrategy.KLDIV_LOSS:
-            loss = F.kl_div(torch.log(output), label)
+            loss = F.kl_div(torch.log(output), label, reduction='batchmean')
+        return loss
+
+    def _compute_l2_dist(self, output, label):
+        loss = F.mse_loss(output, label)
         return loss
 
     def _create_job_models_dir(self, client_id, job_id):
@@ -142,8 +146,6 @@ class TrainNormalStrategy(TrainStrategy):
                                                  num_workers=1,
                                                  pin_memory=True)
 
-
-
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         acc = 0
         model = train_model.get_model()
@@ -155,7 +157,7 @@ class TrainNormalStrategy(TrainStrategy):
             batch_data, batch_target = batch_data.to(device), batch_target.to(device)
             model = model.to(device)
             pred = model(batch_data)
-            log_pred = torch.log(pred)
+            log_pred = torch.log(F.softmax(pred, dim=1))
             loss = self._compute_loss(train_model.get_train_strategy().get_loss_function(), log_pred, batch_target)
             acc += torch.eq(pred.argmax(dim=1), batch_target).sum().float().item()
             optimizer.zero_grad()
@@ -164,13 +166,11 @@ class TrainNormalStrategy(TrainStrategy):
 
             if idx % 200 == 0:
                 self.logger.info("train_loss: {}".format(loss.item()))
-        self.loss_list.append(loss.item())
         accuracy = acc / len(dataloader.dataset)
-        self.accuracy_list.append(accuracy)
         torch.save(model.state_dict(),
                    os.path.join(job_models_path, "tmp_parameters_{}".format(fed_step)))
 
-        return accuracy
+        return accuracy, loss.item()
 
     def _exec_finish_job(self, job_list):
         pass
@@ -353,7 +353,7 @@ class TrainDistillationStrategy(TrainNormalStrategy):
             return 0
         return received / total
 
-    def _train_with_kl(self, train_model, other_models_pars, job_models_path):
+    def _train_with_distillation(self, train_model, other_models_pars, job_models_path, job_l2_dist):
         """
         Distillation training method
         :param train_model:
@@ -378,26 +378,34 @@ class TrainDistillationStrategy(TrainNormalStrategy):
             batch_data = batch_data.to(device)
             batch_target = batch_target.to(device)
             kl_pred = model(batch_data)
-            pred = torch.log(kl_pred)
+            pred = torch.log(F.softmax(kl_pred, dim=1))
             acc += torch.eq(kl_pred.argmax(dim=1), batch_target).sum().float().item()
-            loss_kl = self._compute_loss(LossStrategy.KLDIV_LOSS.value, kl_pred, kl_pred)
+            if job_l2_dist:
+                loss_distillation = self._compute_l2_dist(kl_pred, kl_pred)
+            else:
+                loss_distillation = self._compute_loss(LossStrategy.KLDIV_LOSS, F.softmax(kl_pred, dim=1),
+                                                       F.softmax(kl_pred, dim=1))
             for other_model_pars in other_models_pars:
                 other_model.load_state_dict(other_model_pars)
                 other_model_kl_pred = other_model(batch_data).detach()
-                loss_kl += self._compute_loss(LossStrategy.KLDIV_LOSS.value, kl_pred, other_model_kl_pred)
+                if job_l2_dist:
+                    loss_distillation += self._compute_l2_dist(kl_pred, other_model_kl_pred)
+                else:
+                    loss_distillation += self._compute_loss(LossStrategy.KLDIV_LOSS, F.softmax(kl_pred, dim=1),
+                                                            F.softmax(other_model_kl_pred, dim=1))
 
             loss_s = self._compute_loss(train_model.get_train_strategy().get_loss_function(), pred, batch_target)
-            loss = loss_s + self.job.get_distillation_alpha() * loss_kl
+            loss = loss_s + self.job.get_distillation_alpha() * loss_distillation
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
             if idx % 200 == 0:
                 # print("distillation_loss: ", loss.item())
                 self.logger.info("distillation_loss: {}".format(loss.item()))
-
+        accuracy = acc / len(dataloader.dataset)
         torch.save(model.state_dict(),
                    os.path.join(job_models_path, "tmp_parameters_{}".format(self.fed_step[self.job.get_job_id()] + 1)))
-        return acc / len(dataloader.dataset)
+        return accuracy, loss.item()
 
 
 class TrainStandloneNormalStrategy(TrainNormalStrategy):
@@ -440,7 +448,9 @@ class TrainStandloneNormalStrategy(TrainNormalStrategy):
                 self.logger.info("job_{} is training, Aggregator strategy: {}".format(self.job.get_job_id(),
                                                                                       self.job.get_aggregate_strategy()))
                 runtime_config.EXEC_JOB_LIST.append(self.job.get_job_id())
-                self.acc = self._train(self.model, job_models_path, self.fed_step.get(self.job.get_job_id()))
+                self.acc, loss = self._train(self.model, job_models_path, self.fed_step.get(self.job.get_job_id()))
+                self.loss_list.append(loss)
+                self.accuracy_list.append(self.acc)
                 self.logger.info("job_{} {}th train accuracy: {}".format(self.job.get_job_id(),
                                                                          self.fed_step.get(self.job.get_job_id()),
                                                                          self.acc))
@@ -468,6 +478,8 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
                 if os.path.exists(final_pars_path):
                     self._save_final_parameters(self.job.get_job_id(), final_pars_path)
                     self.logger.info("job_{} completed, final accuracy: {}".format(self.job.get_job_id(), self.acc))
+                if self.curve is True:
+                    self._draw_curve()
                 break
             aggregate_file, _ = self._find_latest_aggregate_model_pars(self.job.get_job_id())
             other_model_pars, connected_clients_num = self._load_other_models_pars(self.job.get_job_id(),
@@ -475,14 +487,18 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
             # job_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
             job_models_path = self._create_job_models_dir(self.client_id, self.job.get_job_id())
 
-            self.logger.info("job_{} is training, Aggregator strategy: {}".format(self.job.get_job_id(),
-                                                                                  self.job.get_aggregate_strategy()))
+            self.logger.info("job_{} is training, Aggregator strategy: {}, L2_dist: {}".format(self.job.get_job_id(),
+                                                                                               self.job.get_aggregate_strategy(),
+                                                                                               self.job.get_l2_dist()))
             if other_model_pars is not None and connected_clients_num and self._calc_rate(len(other_model_pars),
                                                                                           connected_clients_num) >= THRESHOLD:
 
                 self.logger.info("model distillating....")
                 self.fed_step[self.job.get_job_id()] = self.fed_step.get(self.job.get_job_id()) + 1
-                self.acc = self._train_with_kl(self.model, other_model_pars, job_models_path)
+                self.acc, loss = self._train_with_distillation(self.model, other_model_pars, job_models_path,
+                                                               self.job.get_l2_dist())
+                self.accuracy_list.append(self.acc)
+                self.loss_list.append(loss)
                 self.logger.info("model distillation success")
             else:
                 init_model_pars_dir = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(self.job.get_job_id()),
@@ -515,10 +531,14 @@ class TrainMPCNormalStrategy(TrainNormalStrategy):
             if self.fed_step.get(self.job.get_job_id()) is not None and self.fed_step.get(
                     self.job.get_job_id()) == self.job.get_epoch():
                 self.logger.info("job_{} completed, final accuracy: {}".format(self.job.get_job_id(), self.acc))
+                if self.curve is True:
+                    self._draw_curve()
                 break
             elif self.fed_step.get(self.job.get_job_id()) is not None and self.fed_step.get(
                     self.job.get_job_id()) > self.job.get_epoch():
                 self.logger.warning("job_{} has completed, final accuracy: {}".format(self.job.get_job_id(), self.acc))
+                if self.curve is True:
+                    self._draw_curve()
                 break
             self._prepare_job_model(self.job)
             self._prepare_job_init_model_pars(self.job, self.server_url)
@@ -534,7 +554,9 @@ class TrainMPCNormalStrategy(TrainNormalStrategy):
                 self.fed_step[self.job.get_job_id()] = fed_step
                 self.logger.info("job_{} is training, Aggregator strategy: {}".format(self.job.get_job_id(),
                                                                                       self.job.get_aggregate_strategy()))
-                self.acc = self._train(self.model, job_models_path, self.fed_step.get(self.job.get_job_id()))
+                self.acc, loss = self._train(self.model, job_models_path, self.fed_step.get(self.job.get_job_id()))
+                self.loss_list.append(loss)
+                self.accuracy_list.append(self.acc)
                 files = self._prepare_upload_client_model_pars(self.job.get_job_id(), self.client_id,
                                                                self.fed_step.get(self.job.get_job_id()))
                 response = requests.post("/".join(
@@ -565,6 +587,8 @@ class TrainMPCDistillationStrategy(TrainDistillationStrategy):
                 if os.path.exists(final_pars_path):
                     self._save_final_parameters(self.job.get_job_id(), final_pars_path)
                     self.logger.info("job_{} completed, final accuracy: {}".format(self.job.get_job_id(), self.acc))
+                if self.curve is True:
+                    self._draw_curve()
                 break
             self._prepare_job_model(self.job)
             self._prepare_job_init_model_pars(self.job, self.server_url)
@@ -585,17 +609,21 @@ class TrainMPCDistillationStrategy(TrainDistillationStrategy):
             other_model_pars, _ = self._load_other_models_pars(self.job.get_job_id(),
                                                                self.fed_step.get(self.job.get_job_id()))
 
-            self.logger.info("job_{} is training, Aggregator strategy: {}".format(self.job.get_job_id(),
-                                                                                  self.job.get_aggregate_strategy()))
+            self.logger.info("job_{} is training, Aggregator strategy: {}, L2_dist: {}".format(self.job.get_job_id(),
+                                                                                               self.job.get_aggregate_strategy(),
+                                                                                               self.job.get_l2_dist()))
             if other_model_pars is not None and self._calc_rate(len(other_model_pars),
                                                                 len(connected_clients_id)) >= THRESHOLD:
 
                 self.logger.info("model distillating....")
                 self.fed_step[self.job.get_job_id()] = self.fed_step.get(self.job.get_job_id()) + 1
-                self.acc = self._train_with_kl(self.model, other_model_pars,
-                                               os.path.join(LOCAL_MODEL_BASE_PATH,
-                                                            "models_{}".format(self.job.get_job_id()),
-                                                            "models_{}".format(self.client_id)))
+                self.acc, loss = self._train_with_distillation(self.model, other_model_pars,
+                                                               os.path.join(LOCAL_MODEL_BASE_PATH,
+                                                                            "models_{}".format(self.job.get_job_id()),
+                                                                            "models_{}".format(self.client_id)),
+                                                               self.job.get_l2_dist())
+                self.loss_list.append(loss)
+                self.accuracy_list.append(self.acc)
                 self.logger.info("model distillation success")
                 files = self._prepare_upload_client_model_pars(self.job.get_job_id(), self.client_id,
                                                                self.fed_step.get(self.job.get_job_id()) + 1)

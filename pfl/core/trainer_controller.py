@@ -18,7 +18,8 @@ import logging
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from pfl.core import communicate_client
-from pfl.utils.utils import JobUtils, LoggerFactory, CyclicTimer, ModelUtils
+from pfl.exceptions.fl_expection import PFLException
+from pfl.utils.utils import JobUtils, LoggerFactory, ModelUtils
 from pfl.core.strategy import WorkModeStrategy, FederateStrategy
 from pfl.core.trainer import TrainStandloneNormalStrategy, TrainMPCNormalStrategy, \
     TrainStandloneDistillationStrategy, TrainMPCDistillationStrategy
@@ -61,7 +62,7 @@ class TrainerController(object):
                                                   self.client_port)
                 self._trainer_mpc_exec()
             else:
-                print("connect to parameter server fail, please check your internet")
+                PFLException("connect to parameter server fail, please check your internet")
 
     def _trainer_standalone_exec(self):
         t = threading.Timer(5, self._trainer_standalone_exec_impl)
