@@ -40,6 +40,8 @@ pip install pfl >= 0.1.3
 
 As a FLServer, we need to run fl_model.py to generate FL Job and then run fl_server.py.<br>
 As a FLClient, we just need to run fl_client.py.
+>FLClient can not search jobs automatically, beacuse we need to specify train strategy(optimizer/scheduler) for each model
+>We need to restart fl_client.py manually when FLClient finished work last time.
 #### Standalone work mode
 
 fl_model.py
@@ -67,6 +69,7 @@ class Net(nn.Module):
         x = x.view(-1, 4 * 4 * 50)
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
+        #need to return logits
         return x
 
 
@@ -158,6 +161,7 @@ class Net(nn.Module):
         x = x.view(-1, 4 * 4 * 50)
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
+        #need to return logits
         return x
 
 
