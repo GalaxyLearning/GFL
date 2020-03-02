@@ -35,6 +35,13 @@ temporary model parameters from various FLClients.
 ```python
 pip install pfl >= 0.1.3
 ```
+**Attention:** It's necessary to install pytorch and torchvison using conda in `macOS` to avoid the internal error of pytorch
+installed by pip.
+```python
+conda install pytorch==1.3.0 torchvision==0.4.1 -c pytorch
+```
+
+
 
 ### Quick Start Guide
 
