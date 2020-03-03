@@ -41,6 +41,17 @@ installed by pip.
 conda install pytorch==1.3.0 torchvision==0.4.1 -c pytorch
 ```
 
+**Dependent libraries**
+```python
+Werkzeug==0.16.0
+requests==2.22.0
+Flask==1.1.1
+matplotlib==3.1.1
+torch==1.3.0
+torchvision==0.4.1
+```
+Attention: Make sure your `pillow<7.0.0`.
+
 
 
 ### Quick Start Guide
