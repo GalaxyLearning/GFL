@@ -3,8 +3,6 @@ import torch.nn.functional as F
 import pfl.core.strategy as strategy
 from pfl.core.job_manager import JobManager
 
-SERVER_HOST = "http://127.0.0.1:9673"
-
 
 class Net(nn.Module):
     def __init__(self):
