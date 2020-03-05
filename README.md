@@ -62,6 +62,41 @@ As a FLServer, we need to run fl_model.py to generate FL Job and then run fl_ser
 As a FLClient, we just need to run fl_client.py.
 >FLClient can not search jobs automatically, beacuse we need to specify train strategy(optimizer/scheduler) for each model
 >We need to restart fl_client.py manually when FLClient finished work last time.
+
+When each job finished, we could find each job's model parameters file named `final_model_pars_{job_id}` in directory. 
+We just need to load this model parameters file to use it.
+
+For example:
+```python
+import torch
+from torch import nn
+import torch.nn.functional as F
+class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5, 1)
+        self.conv2 = nn.Conv2d(20, 50, 5, 1)
+        self.fc1 = nn.Linear(4 * 4 * 50, 500)
+        self.fc2 = nn.Linear(500, 10)
+        self.softmax = nn.Softmax(dim=1)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        x = F.max_pool2d(x, 2, 2)
+        x = F.relu(self.conv2(x))
+        x = F.max_pool2d(x, 2, 2)
+        x = x.view(-1, 4 * 4 * 50)
+        x = F.relu(self.fc1(x))
+        x = self.fc2(x)
+        #need to return logits
+        return x
+
+model = Net() 
+model.load_state_dict(torch.load('{final_model_pars_path}'))
+
+```
+
+
 #### Standalone work mode
 
 fl_model.py
