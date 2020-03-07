@@ -177,17 +177,29 @@ class TrainNormalStrategy(TrainStrategy):
 
     def _prepare_jobs_model(self, job_list):
         for job in job_list:
-            self._prepare_job_model(job)
+            self._prepare_job_model(job, None)
 
-    def _prepare_job_model(self, job):
+    def _prepare_job_model(self, job, server_url=None):
         job_model_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job.get_job_id()))
         job_init_model_path = os.path.join(job_model_path, "init_model_{}.py".format(job.get_job_id()))
-        with open(job.get_train_model(), "r") as model_f:
+        if server_url is None:
+            # with open(job.get_train_model(), "r") as model_f:
+            #     if not os.path.exists(job_init_model_path):
+            #         f = open(job_init_model_path, "w")
+            #         for line in model_f.readlines():
+            #             f.write(line)
+            #         f.close()
             if not os.path.exists(job_init_model_path):
-                f = open(job_init_model_path, "w")
-                for line in model_f.readlines():
-                    f.write(line)
-                f.close()
+                with open(job_init_model_path, "w") as model_f:
+                    with open(job.get_train_model(), "r") as f:
+                        for line in f.readlines():
+                            model_f.write(line)
+        else:
+            if not os.path.exists(job_model_path):
+                os.makedirs(job_model_path)
+            if not os.path.exists(job_init_model_path):
+                response = requests.get("/".join([server_url, "init_model", job.get_job_id()]))
+                self._write_bfile_to_local(response, job_init_model_path)
 
     def _prepare_job_init_model_pars(self, job, server_url):
         job_init_model_pars_dir = os.path.join(LOCAL_MODEL_BASE_PATH,
@@ -540,7 +552,7 @@ class TrainMPCNormalStrategy(TrainNormalStrategy):
                 if self.curve is True:
                     self._draw_curve()
                 break
-            self._prepare_job_model(self.job)
+            self._prepare_job_model(self.job, self.server_url)
             self._prepare_job_init_model_pars(self.job, self.server_url)
             aggregate_file, fed_step = self._find_latest_aggregate_model_pars(self.job.get_job_id())
             if aggregate_file is not None and self.fed_step.get(self.job.get_job_id()) != fed_step:

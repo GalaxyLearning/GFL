@@ -80,6 +80,11 @@ def acquire_init_model_pars(job_id):
     init_model_pars_dir = os.path.join(BASE_MODEL_PATH, "models_{}".format(job_id))
     return send_from_directory(init_model_pars_dir, "init_model_pars_{}".format(job_id), as_attachment=True)
 
+@app.route("/init_model/<job_id>", methods=['GET'], endpoint='acquire_init_model')
+def acquire_init_model(job_id):
+    init_model_path = os.path.join(BASE_MODEL_PATH, "models_{}".format(job_id))
+    return send_from_directory(init_model_path, "init_model_{}".format(job_id), as_attachment=True)
+
 
 @app.route("/modelpars/<client_id>/<job_id>/<fed_step>", methods=['POST'], endpoint='submit_model_parameter')
 @return_data_decorator
