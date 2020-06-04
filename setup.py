@@ -26,10 +26,10 @@ setup(
     version="0.1.0",
     author="Galaxy Learning Author",
     author_email="yifan_hu@zju.edu.cn",
-    description="A Federated Learning Framework Based on pytorch",
+    description="A Galaxy Federated Learning Framework",
     long_description='',
     license="Apache-2.0",
-    url="https://github.com/GalaxyLearning/PFL",
+    url="https://github.com/GalaxyLearning/GFL",
     packages=find_packages(),
     classifiers=[
         'Intended Audience :: Developers',

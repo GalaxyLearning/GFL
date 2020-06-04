@@ -35,7 +35,7 @@ temporary model parameters from various FLClients.
 
 ### Install GFL Framework
 ```python
-pip install gfl >= 0.1.3
+pip install gfl >= 0.1.0
 ```
 **Attention:** It's necessary to install pytorch and torchvison using conda in `macOS` to avoid the internal error of pytorch
 installed by pip.
