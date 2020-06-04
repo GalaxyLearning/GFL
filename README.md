@@ -156,14 +156,14 @@ if __name__ == "__main__":
         transforms.Normalize((0.13066062,), (0.30810776,))
     ]))
     client = FLClient()
-    GFL_models = client.get_remote_GFL_models()
+    gfl_models = client.get_remote_gfl_models()
 
-    for GFL_model in GFL_models:
-        optimizer = torch.optim.SGD(GFL_model.get_model().parameters(), lr=0.01, momentum=0.5)
+    for gfl_model in gfl_models:
+        optimizer = torch.optim.SGD(gfl_model.get_model().parameters(), lr=0.01, momentum=0.5)
         train_strategy = TrainStrategy(optimizer=optimizer, batch_size=32, loss_function=LossStrategy.NLL_LOSS)
-        GFL_model.set_train_strategy(train_strategy)
+        gfl_model.set_train_strategy(train_strategy)
 
-    TrainerController(work_mode=WorkModeStrategy.WORKMODE_STANDALONE, models=GFL_models, data=mnist_data, client_id=CLIENT_ID,
+    TrainerController(work_mode=WorkModeStrategy.WORKMODE_STANDALONE, models=gfl_models, data=mnist_data, client_id=CLIENT_ID,
                       curve=True, concurrent_num=3).start()
 
 
@@ -253,14 +253,14 @@ if __name__ == "__main__":
     ]))
 
     client = FLClient()
-    GFL_models = client.get_remote_GFL_models(SERVER_URL)
+    gfl_models = client.get_remote_gfl_models(SERVER_URL)
 
-    for GFL_model in GFL_models:
-        optimizer = torch.optim.SGD(GFL_model.get_model().parameters(), lr=0.01, momentum=0.5)
+    for gfl_model in gfl_models:
+        optimizer = torch.optim.SGD(gfl_model.get_model().parameters(), lr=0.01, momentum=0.5)
         train_strategy = TrainStrategy(optimizer=optimizer, batch_size=32, loss_function=LossStrategy.NLL_LOSS)
-        GFL_model.set_train_strategy(train_strategy)
+        gfl_model.set_train_strategy(train_strategy)
 
-    TrainerController(work_mode=WorkModeStrategy.WORKMODE_CLUSTER, models=GFL_models, data=mnist_data, client_id=CLIENT_ID,
+    TrainerController(work_mode=WorkModeStrategy.WORKMODE_CLUSTER, models=gfl_models, data=mnist_data, client_id=CLIENT_ID,
                       client_ip=CLIENT_IP, client_port=CLIENT_PORT,
                       server_url=SERVER_URL, curve=True, concurrent_num=3).start()
 
