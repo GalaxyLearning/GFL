@@ -106,7 +106,8 @@ class TrainStrategy(object):
             if os.path.exists(init_model_pars_path):
                 shutil.move(init_model_pars_path, first_aggregate_path)
         file_list = os.listdir(job_model_path)
-
+        file_list.sort()
+        
         if len(file_list) != 0:
             return os.path.join(job_model_path, file_list[-1]), len(file_list)
         return None, 0
