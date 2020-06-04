@@ -15,7 +15,7 @@
 # federate strategies
 import torch
 from enum import Enum
-from pfl.exceptions.fl_expection import PFLException
+from gfl.exceptions.fl_expection import PFLException
 
 
 class WorkModeStrategy(Enum):

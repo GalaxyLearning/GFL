@@ -1,19 +1,19 @@
-# PFL Framework
+# GFL Framework
 
-PFL is a federated learning framework based on pytorch and it provides different federated learning algorithm.
-PFL is also the infrastructure of Galaxy learning system(GLS).
-GLS is a federated learning system based on blockchain and PFL. 
-At present, the PFL part is open-source first, and the blockchain part will be open-source soon. 
-In addition to the traditional federate learning algorithm, PFL also provides a new federated learning algorithm 
+GFL is a federated learning framework based on pytorch and it provides different federated learning algorithm.
+GFL is also the infrastructure of Galaxy learning system(GLS).
+GLS is a federated learning system based on blockchain and GFL. 
+At present, the GFL part is open-source first, and the blockchain part will be open-source soon. 
+In addition to the traditional federate learning algorithm, GFL also provides a new federated learning algorithm 
 based on model distillation. Developers can choose different federated learning algorithm to train their model.
 
 
-## PFL Framework Design
+## GFL Framework Design
 ![imgaes](resource//pictures//framework_design.png)
 > The framework design reference PaddleFL
 
 **Prepare Job**
-> When we want to use PFL, we need to specify several strategies and generate FL jobs.
+> When we want to use GFL, we need to specify several strategies and generate FL jobs.
 - FederateStrategy: To specify federated learning algorithm(`FedAvg` or `Model Distillation`).
 - WorkModeStrategy: To specify work mode(standalone or cluster).
 - TrainStrategy: To specify train details in federated learning.
@@ -33,9 +33,9 @@ temporary model parameters from various FLClients.
 
 ## Install And Quick Start Guide
 
-### Install PFL Framework
+### Install GFL Framework
 ```python
-pip install pfl >= 0.1.3
+pip install gfl >= 0.1.3
 ```
 **Attention:** It's necessary to install pytorch and torchvison using conda in `macOS` to avoid the internal error of pytorch
 installed by pip.
@@ -103,8 +103,8 @@ fl_model.py
 ```python
 from torch import nn
 import torch.nn.functional as F
-import pfl.core.strategy as strategy
-from pfl.core.job_manager import JobManager
+import gfl.core.strategy as strategy
+from gfl.core.job_manager import JobManager
 
 
 class Net(nn.Module):
@@ -142,9 +142,9 @@ fl_client.py
 ```python
 import torch
 from torchvision import datasets, transforms
-from pfl.core.client import FLClient
-from pfl.core.strategy import WorkModeStrategy, TrainStrategy, LossStrategy
-from pfl.core.trainer_controller import TrainerController
+from gfl.core.client import FLClient
+from gfl.core.strategy import WorkModeStrategy, TrainStrategy, LossStrategy
+from gfl.core.trainer_controller import TrainerController
 
 CLIENT_ID = 0
 
@@ -156,14 +156,14 @@ if __name__ == "__main__":
         transforms.Normalize((0.13066062,), (0.30810776,))
     ]))
     client = FLClient()
-    pfl_models = client.get_remote_pfl_models()
+    GFL_models = client.get_remote_GFL_models()
 
-    for pfl_model in pfl_models:
-        optimizer = torch.optim.SGD(pfl_model.get_model().parameters(), lr=0.01, momentum=0.5)
+    for GFL_model in GFL_models:
+        optimizer = torch.optim.SGD(GFL_model.get_model().parameters(), lr=0.01, momentum=0.5)
         train_strategy = TrainStrategy(optimizer=optimizer, batch_size=32, loss_function=LossStrategy.NLL_LOSS)
-        pfl_model.set_train_strategy(train_strategy)
+        GFL_model.set_train_strategy(train_strategy)
 
-    TrainerController(work_mode=WorkModeStrategy.WORKMODE_STANDALONE, models=pfl_models, data=mnist_data, client_id=CLIENT_ID,
+    TrainerController(work_mode=WorkModeStrategy.WORKMODE_STANDALONE, models=GFL_models, data=mnist_data, client_id=CLIENT_ID,
                       curve=True, concurrent_num=3).start()
 
 
@@ -171,8 +171,8 @@ if __name__ == "__main__":
 
 fl_server.py
 ```python
-from pfl.core.server import FLStandaloneServer
-from pfl.core.strategy import FederateStrategy
+from gfl.core.server import FLStandaloneServer
+from gfl.core.strategy import FederateStrategy
 
 FEDERATE_STRATEGY = FederateStrategy.FED_AVG
 
@@ -193,8 +193,8 @@ fl_model.py
 ```python
 from torch import nn
 import torch.nn.functional as F
-import pfl.core.strategy as strategy
-from pfl.core.job_manager import JobManager
+import gfl.core.strategy as strategy
+from gfl.core.job_manager import JobManager
 
 
 
@@ -234,10 +234,10 @@ if __name__ == "__main__":
 fl_client.py
 ```python
 import torch
-from pfl.core.client import FLClient
+from gfl.core.client import FLClient
 from torchvision import datasets, transforms
-from pfl.core.trainer_controller import TrainerController
-from pfl.core.strategy import WorkModeStrategy, TrainStrategy, LossStrategy
+from gfl.core.trainer_controller import TrainerController
+from gfl.core.strategy import WorkModeStrategy, TrainStrategy, LossStrategy
 
 SERVER_URL = "http://127.0.0.1:9763"
 CLIENT_IP = "127.0.0.1"
@@ -253,22 +253,22 @@ if __name__ == "__main__":
     ]))
 
     client = FLClient()
-    pfl_models = client.get_remote_pfl_models(SERVER_URL)
+    GFL_models = client.get_remote_GFL_models(SERVER_URL)
 
-    for pfl_model in pfl_models:
-        optimizer = torch.optim.SGD(pfl_model.get_model().parameters(), lr=0.01, momentum=0.5)
+    for GFL_model in GFL_models:
+        optimizer = torch.optim.SGD(GFL_model.get_model().parameters(), lr=0.01, momentum=0.5)
         train_strategy = TrainStrategy(optimizer=optimizer, batch_size=32, loss_function=LossStrategy.NLL_LOSS)
-        pfl_model.set_train_strategy(train_strategy)
+        GFL_model.set_train_strategy(train_strategy)
 
-    TrainerController(work_mode=WorkModeStrategy.WORKMODE_CLUSTER, models=pfl_models, data=mnist_data, client_id=CLIENT_ID,
+    TrainerController(work_mode=WorkModeStrategy.WORKMODE_CLUSTER, models=GFL_models, data=mnist_data, client_id=CLIENT_ID,
                       client_ip=CLIENT_IP, client_port=CLIENT_PORT,
                       server_url=SERVER_URL, curve=True, concurrent_num=3).start()
 
 ```
 fl_server.py
 ```python
-from pfl.core.server import FLClusterServer
-from pfl.core.strategy import FederateStrategy
+from gfl.core.server import FLClusterServer
+from gfl.core.strategy import FederateStrategy
 
 FEDERATE_STRATEGY = FederateStrategy.FED_AVG
 IP = '0.0.0.0'

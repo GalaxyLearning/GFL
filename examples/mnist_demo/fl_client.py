@@ -1,8 +1,8 @@
 import torch
 from torchvision import datasets, transforms
-from pfl.core.client import FLClient
-from pfl.core.strategy import WorkModeStrategy, TrainStrategy, LossStrategy
-from pfl.core.trainer_controller import TrainerController
+from gfl.core.client import FLClient
+from gfl.core.strategy import WorkModeStrategy, TrainStrategy, LossStrategy
+from gfl.core.trainer_controller import TrainerController
 
 CLIENT_ID = 0
 

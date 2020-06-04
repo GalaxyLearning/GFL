@@ -19,10 +19,10 @@ import time
 import requests
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from pfl.core.strategy import WorkModeStrategy
-from pfl.core.job_manager import JobManager
-from pfl.utils.utils import LoggerFactory
-from pfl.entity.runtime_config import WAITING_BROADCAST_AGGREGATED_JOB_ID_LIST, CONNECTED_TRAINER_LIST
+from gfl.core.strategy import WorkModeStrategy
+from gfl.core.job_manager import JobManager
+from gfl.utils.utils import LoggerFactory
+from gfl.entity.runtime_config import WAITING_BROADCAST_AGGREGATED_JOB_ID_LIST, CONNECTED_TRAINER_LIST
 
 LOCAL_AGGREGATE_FILE = os.path.join("tmp_aggregate_pars", "avg_pars")
 

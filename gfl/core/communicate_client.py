@@ -15,7 +15,7 @@
 import os, logging
 from flask import Flask, request
 from werkzeug.serving import run_simple
-from pfl.utils.utils import return_data_decorator, LoggerFactory
+from gfl.utils.utils import return_data_decorator, LoggerFactory
 
 app = Flask(__name__)
 
@@ -27,7 +27,7 @@ logger = LoggerFactory.getLogger(__name__, logging.INFO)
 @return_data_decorator
 @app.route("/", methods=['GET'])
 def test_client():
-    return "Hello pfl client", 200
+    return "Hello gfl client", 200
 
 
 @return_data_decorator

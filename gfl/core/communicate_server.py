@@ -18,9 +18,9 @@ import json
 import logging
 from flask import Flask, send_from_directory, request
 from werkzeug.serving import run_simple
-from pfl.entity.runtime_config import CONNECTED_TRAINER_LIST
-from pfl.core.job_manager import JobManager
-from pfl.utils.utils import JobEncoder, return_data_decorator, LoggerFactory
+from gfl.entity.runtime_config import CONNECTED_TRAINER_LIST
+from gfl.core.job_manager import JobManager
+from gfl.utils.utils import JobEncoder, return_data_decorator, LoggerFactory
 
 API_VERSION = "/api/v1"
 JOB_PATH = os.path.join(os.path.abspath("."), "res", "jobs_server")

@@ -1,8 +1,8 @@
 import torch
-from pfl.core.client import FLClient
+from gfl.core.client import FLClient
 from torchvision import datasets, transforms
-from pfl.core.trainer_controller import TrainerController
-from pfl.core.strategy import WorkModeStrategy, TrainStrategy, LossStrategy
+from gfl.core.trainer_controller import TrainerController
+from gfl.core.strategy import WorkModeStrategy, TrainStrategy, LossStrategy
 
 SERVER_URL = "http://127.0.0.1:9763"
 CLIENT_IP = "127.0.0.1"

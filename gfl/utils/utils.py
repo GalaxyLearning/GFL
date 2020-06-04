@@ -22,8 +22,8 @@ import requests
 import logging
 from json.decoder import WHITESPACE
 
-from pfl.entity.job import Job
-from pfl.core.strategy import TrainStrategy
+from gfl.entity.job import Job
+from gfl.core.strategy import TrainStrategy
 
 LOG_FILE = os.path.join(os.path.abspath("."), "log.txt")
 

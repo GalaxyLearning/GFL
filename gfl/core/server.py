@@ -16,11 +16,11 @@
 import os
 import threading
 import logging
-from pfl.core import communicate_server
+from gfl.core import communicate_server
 from concurrent.futures import ThreadPoolExecutor
-from pfl.core.aggregator import FedAvgAggregator
-from pfl.utils.utils import LoggerFactory, CyclicTimer
-from pfl.core.strategy import WorkModeStrategy, FederateStrategy
+from gfl.core.aggregator import FedAvgAggregator
+from gfl.utils.utils import LoggerFactory, CyclicTimer
+from gfl.core.strategy import WorkModeStrategy, FederateStrategy
 
 
 JOB_PATH = os.path.join(os.path.abspath("."), "res", "jobs_server")

@@ -22,10 +22,10 @@ import requests
 import importlib
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-from pfl.entity import runtime_config
-from pfl.exceptions.fl_expection import PFLException
-from pfl.core.strategy import OptimizerStrategy, LossStrategy, SchedulerStrategy
-from pfl.utils.utils import LoggerFactory
+from gfl.entity import runtime_config
+from gfl.exceptions.fl_expection import PFLException
+from gfl.core.strategy import OptimizerStrategy, LossStrategy, SchedulerStrategy
+from gfl.utils.utils import LoggerFactory
 
 JOB_PATH = os.path.join(os.path.abspath("."), "res", "jobs_client")
 LOCAL_MODEL_BASE_PATH = os.path.join(os.path.abspath("."), "res", "models")

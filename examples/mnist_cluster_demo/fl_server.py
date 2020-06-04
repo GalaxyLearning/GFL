@@ -1,5 +1,5 @@
-from pfl.core.server import FLClusterServer
-from pfl.core.strategy import FederateStrategy
+from gfl.core.server import FLClusterServer
+from gfl.core.strategy import FederateStrategy
 
 FEDERATE_STRATEGY = FederateStrategy.FED_AVG
 IP = '0.0.0.0'

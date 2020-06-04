@@ -22,8 +22,8 @@ from setuptools import find_packages
 from setuptools import setup
 
 setup(
-    name="pfl",
-    version="0.1.3",
+    name="gfl",
+    version="0.1.0",
     author="Galaxy Learning Author",
     author_email="yifan_hu@zju.edu.cn",
     description="A Federated Learning Framework Based on pytorch",

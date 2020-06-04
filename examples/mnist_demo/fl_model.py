@@ -1,7 +1,7 @@
 from torch import nn
 import torch.nn.functional as F
-import pfl.core.strategy as strategy
-from pfl.core.job_manager import JobManager
+import gfl.core.strategy as strategy
+from gfl.core.job_manager import JobManager
 
 
 class Net(nn.Module):

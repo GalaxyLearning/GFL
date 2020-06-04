@@ -18,11 +18,11 @@ import pickle
 import logging
 import os, json
 import inspect
-from pfl.entity import runtime_config
-from pfl.entity.job import Job
-from pfl.exceptions.fl_expection import PFLException
-from pfl.utils.utils import JobUtils, LoggerFactory
-from pfl.core.strategy import WorkModeStrategy, FederateStrategy
+from gfl.entity import runtime_config
+from gfl.entity.job import Job
+from gfl.exceptions.fl_expection import PFLException
+from gfl.utils.utils import JobUtils, LoggerFactory
+from gfl.core.strategy import WorkModeStrategy, FederateStrategy
 
 lock = threading.RLock()
 

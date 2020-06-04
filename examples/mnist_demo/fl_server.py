@@ -1,5 +1,5 @@
-from pfl.core.server import FLStandaloneServer
-from pfl.core.strategy import FederateStrategy
+from gfl.core.server import FLStandaloneServer
+from gfl.core.strategy import FederateStrategy
 
 FEDERATE_STRATEGY = FederateStrategy.FED_AVG
 

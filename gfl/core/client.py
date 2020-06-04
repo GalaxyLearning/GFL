@@ -14,8 +14,8 @@
 
 import os
 import importlib
-from pfl.utils.utils import JobUtils
-from pfl.entity.model import Model
+from gfl.utils.utils import JobUtils
+from gfl.entity.model import Model
 
 JOB_PATH = os.path.join(os.path.abspath("."), "res", "jobs_client")
 BASE_MODEL_PATH = os.path.join(os.path.abspath("."), "res", "models")

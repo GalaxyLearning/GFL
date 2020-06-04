@@ -17,11 +17,11 @@ import requests
 import logging
 import threading
 from concurrent.futures import ThreadPoolExecutor
-from pfl.core import communicate_client
-from pfl.exceptions.fl_expection import PFLException
-from pfl.utils.utils import JobUtils, LoggerFactory, ModelUtils
-from pfl.core.strategy import WorkModeStrategy, FederateStrategy
-from pfl.core.trainer import TrainStandloneNormalStrategy, TrainMPCNormalStrategy, \
+from gfl.core import communicate_client
+from gfl.exceptions.fl_expection import PFLException
+from gfl.utils.utils import JobUtils, LoggerFactory, ModelUtils
+from gfl.core.strategy import WorkModeStrategy, FederateStrategy
+from gfl.core.trainer import TrainStandloneNormalStrategy, TrainMPCNormalStrategy, \
     TrainStandloneDistillationStrategy, TrainMPCDistillationStrategy
 
 JOB_PATH = os.path.join(os.path.abspath("."), "res", "jobs_client")
