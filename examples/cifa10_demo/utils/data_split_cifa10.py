@@ -58,8 +58,8 @@ def data_split():
 
     cifa10_len = len(cifa10_dataset)
     
-    client_1_dataset, client_2_dataset = torch.utils.data.random_split(cifa10_dataset, [int(cifa10_len*0.5), int(cifa10_len*0.5)])
-    train_datasets = [client_1_dataset, client_2_dataset]
+    client_1_dataset, client_2_dataset, client_3_dataset = torch.utils.data.random_split(cifa10_dataset, [int(cifa10_len*0.3), int(cifa10_len*0.3), int(cifa10_len*0.4)])
+    train_datasets = [client_1_dataset, client_2_dataset, client_3_dataset]
     save_split_dataset("cifa10", train_datasets, None)
 
 
