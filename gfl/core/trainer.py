@@ -386,6 +386,7 @@ class TrainDistillationStrategy(TrainNormalStrategy):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model = train_model.get_model()
         model, other_model = model.to(device), copy.deepcopy(model).to(device)
+        optimizer = self._generate_new_optimizer(model, train_model.get_train_strategy().get_optimizer())
         acc = 0
         for idx, (batch_data, batch_target) in enumerate(dataloader):
             batch_data = batch_data.to(device)
