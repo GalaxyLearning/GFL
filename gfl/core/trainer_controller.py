@@ -34,10 +34,11 @@ class TrainerController(object):
 
     def __init__(self, work_mode=WorkModeStrategy.WORKMODE_STANDALONE, models=None, data=None, client_id=0,
                  client_ip="",
-                 client_port=8081, server_url="", curve=False, concurrent_num=5):
+                 client_port=8081, server_url="", curve=False, local_epoch=5, concurrent_num=5):
         self.work_mode = work_mode
         self.data = data
         self.client_id = str(client_id)
+        self.local_epoch = local_epoch
         self.concurrent_num = concurrent_num
         self.trainer_executor_pool = ThreadPoolExecutor(self.concurrent_num)
         self.job_path = JOB_PATH
@@ -80,12 +81,14 @@ class TrainerController(object):
                     self.job_train_strategy[job.get_job_id()] = TrainStandloneNormalStrategy(job, self.data,
                                                                                              self.fed_step,
                                                                                              self.client_id,
+                                                                                             self.local_epoch,
                                                                                              pfl_model,
                                                                                              self.curve)
                 else:
                     self.job_train_strategy[job.get_job_id()] = TrainStandloneDistillationStrategy(job, self.data,
                                                                                                    self.fed_step,
                                                                                                    self.client_id,
+                                                                                                   self.local_epoch,
                                                                                                    pfl_model,
                                                                                                    self.curve)
                 self.run(self.job_train_strategy.get(job.get_job_id()))
@@ -104,7 +107,7 @@ class TrainerController(object):
                 if job.get_aggregate_strategy() == FederateStrategy.FED_AVG.value:
                     self.job_train_strategy[job.get_job_id()] = self.job_train_strategy[
                         job.get_job_id()] = TrainMPCNormalStrategy(job, self.data, self.fed_step, self.client_ip,
-                                                                   self.client_port, self.server_url, self.client_id,
+                                                                   self.client_port, self.server_url, self.client_id, self.local_epoch,
                                                                    pfl_model, self.curve)
                 else:
                     self.job_train_strategy[job.get_job_id()] = TrainMPCDistillationStrategy(job, self.data,
@@ -112,7 +115,7 @@ class TrainerController(object):
                                                                                              self.client_ip,
                                                                                              self.client_port,
                                                                                              self.server_url,
-                                                                                             self.client_id,
+                                                                                             self.client_id, self.local_epoch,
                                                                                              pfl_model,
                                                                                              self.curve)
                 self.run(self.job_train_strategy.get(job.get_job_id()))

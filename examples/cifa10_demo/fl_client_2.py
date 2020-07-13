@@ -18,9 +18,9 @@ if __name__ == "__main__":
     pfl_models = client.get_remote_pfl_models()
 
     for pfl_model in pfl_models:
-        optimizer = torch.optim.SGD(pfl_model.get_model().parameters(), lr=0.001, momentum=0.9)
+        optimizer = torch.optim.SGD(pfl_model.get_model().parameters(), lr=0.01, momentum=0.5)
         train_strategy = TrainStrategy(optimizer=optimizer, batch_size=32, loss_function=LossStrategy.NLL_LOSS)
         pfl_model.set_train_strategy(train_strategy)
 
     TrainerController(work_mode=WorkModeStrategy.WORKMODE_STANDALONE, models=pfl_models, data=dataset, client_id=CLIENT_ID,
-                      curve=True, concurrent_num=3).start()
+                      curve=True, local_epoch=5, concurrent_num=3).start()
