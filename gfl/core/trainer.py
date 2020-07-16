@@ -455,10 +455,10 @@ class TrainStandloneNormalStrategy(TrainNormalStrategy):
                 break
             aggregate_file, fed_step = self._find_latest_aggregate_model_pars(self.job.get_job_id())
             if aggregate_file is not None and self.fed_step.get(self.job.get_job_id()) != fed_step:
-                if self.job.get_job_id() in runtime_config.EXEC_JOB_LIST:
-                    runtime_config.EXEC_JOB_LIST.remove(self.job.get_job_id())
+                # if self.job.get_job_id() in runtime_config.EXEC_JOB_LIST:
+                #     runtime_config.EXEC_JOB_LIST.remove(self.job.get_job_id())
                 self.fed_step[self.job.get_job_id()] = fed_step
-            if self.job.get_job_id() not in runtime_config.EXEC_JOB_LIST:
+            # if self.job.get_job_id() not in runtime_config.EXEC_JOB_LIST:
                 # job_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
                 if aggregate_file is not None:
                     self.logger.info("load {} parameters".format(aggregate_file))
@@ -469,7 +469,7 @@ class TrainStandloneNormalStrategy(TrainNormalStrategy):
                 job_models_path = self._create_job_models_dir(self.client_id, self.job.get_job_id())
                 self.logger.info("job_{} is training, Aggregator strategy: {}".format(self.job.get_job_id(),
                                                                                       self.job.get_aggregate_strategy()))
-                runtime_config.EXEC_JOB_LIST.append(self.job.get_job_id())
+                # runtime_config.EXEC_JOB_LIST.append(self.job.get_job_id())
                 self.acc, loss = self._train(self.model, job_models_path, self.fed_step.get(self.job.get_job_id()), self.local_epoch)
                 self.loss_list.append(loss)
                 self.accuracy_list.append(self.acc)
@@ -663,3 +663,21 @@ class TrainMPCDistillationStrategy(TrainDistillationStrategy):
                     response = requests.post("/".join(
                         [self.server_url, "modelpars", "%s" % self.client_id, self.job.get_job_id(),
                          "%s" % (self.fed_step.get(self.job.get_job_id()) + 1)]), data=None, files=files)
+
+
+class TrainBlockchainNormalSelectionStrategy(TrainNormalStrategy):
+    def __init__(self):
+        pass
+
+
+
+
+
+class TrainBlockchainDistillationSelectionStrategy(TrainDistillationStrategy):
+    def __init__(self):
+        pass
+
+
+
+
+

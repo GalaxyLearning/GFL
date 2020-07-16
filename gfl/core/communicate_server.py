@@ -18,13 +18,15 @@ import json
 import logging
 from flask import Flask, send_from_directory, request
 from werkzeug.serving import run_simple
-from gfl.entity.runtime_config import CONNECTED_TRAINER_LIST
+from gfl.entity.runtime_config import RuntimeServerConfig
 from gfl.core.job_manager import JobManager
-from gfl.utils.utils import JobEncoder, return_data_decorator, LoggerFactory
+from gfl.utils.json_utils import JsonUtil
+from gfl.utils.utils import JobEncoder, return_data_decorator, LoggerFactory, RuntimeConfigUtils
 
 API_VERSION = "/api/v1"
 JOB_PATH = os.path.join(os.path.abspath("."), "res", "jobs_server")
 BASE_MODEL_PATH = os.path.join(os.path.abspath("."), "res", "models")
+RUNTIME_CONFIG_SERVER_PATH = os.path.join(os.path.abspath(".", "runtime_config_server.json"))
 
 logger = LoggerFactory.getLogger(__name__, logging.INFO)
 
@@ -41,14 +43,21 @@ def test_flask_server(name):
 @return_data_decorator
 def register_trainer(ip, port, client_id):
     trainer_host = ip + ":" + port
-    if trainer_host not in CONNECTED_TRAINER_LIST:
+
+    if not os.path.exists(RUNTIME_CONFIG_SERVER_PATH):
+        return 'server has internal error', 203
+
+    runtime_server_config = RuntimeConfigUtils.get_obj_from_runtime_config_file(RUNTIME_CONFIG_SERVER_PATH,
+                                                                                RuntimeServerConfig)
+    if trainer_host not in runtime_server_config.CONNECTED_TRAINER_LIST:
         job_list = JobManager.get_job_list(JOB_PATH)
         for job in job_list:
             job_model_client_dir = os.path.join(BASE_MODEL_PATH, "models_{}".format(job.get_job_id()),
                                                 "models_{}".format(client_id))
             if not os.path.exists(job_model_client_dir):
                 os.makedirs(job_model_client_dir)
-        CONNECTED_TRAINER_LIST.append(trainer_host)
+        runtime_server_config.CONNECTED_TRAINER_LIST.append(trainer_host)
+        RuntimeConfigUtils.write_obj_to_runtime_config_file(runtime_server_config, RUNTIME_CONFIG_SERVER_PATH)
         return 'register_success', 200
     else:
         return 'already connected', 201
@@ -58,8 +67,11 @@ def register_trainer(ip, port, client_id):
 @return_data_decorator
 def offline(ip, port):
     trainer_host = ip + ":" + port
-    if trainer_host in CONNECTED_TRAINER_LIST:
-        CONNECTED_TRAINER_LIST.remove(trainer_host)
+    runtime_server_config = RuntimeConfigUtils.get_obj_from_runtime_config_file(RUNTIME_CONFIG_SERVER_PATH,
+                                                                                RuntimeServerConfig)
+    if trainer_host in runtime_server_config.CONNECTED_TRAINER_LIST:
+        runtime_server_config.CONNECTED_TRAINER_LIST.remove(trainer_host)
+        RuntimeConfigUtils.write_obj_to_runtime_config_file(runtime_server_config, RUNTIME_CONFIG_SERVER_PATH)
         return 'offline success', 200
     return 'already offline', 201
 
@@ -79,6 +91,7 @@ def acquire_job_list():
 def acquire_init_model_pars(job_id):
     init_model_pars_dir = os.path.join(BASE_MODEL_PATH, "models_{}".format(job_id))
     return send_from_directory(init_model_pars_dir, "init_model_pars_{}".format(job_id), as_attachment=True)
+
 
 @app.route("/init_model/<job_id>", methods=['GET'], endpoint='acquire_init_model')
 def acquire_init_model(job_id):
