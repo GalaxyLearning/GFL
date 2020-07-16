@@ -8,7 +8,7 @@ In addition to the traditional federate learning algorithm, GFL also provides a 
 based on model distillation. Developers can choose different federated learning algorithm to train their model.
 
 
-## GFL Framework Design
+## GFL Base Framework Design
 ![imgaes](resource//pictures//framework_design.png)
 > The framework design reference PaddleFL
 
@@ -29,6 +29,9 @@ if we use `Model Distillation` as our federated learning algorithm, the the FlSe
 temporary model parameters from various FLClients. 
 - FLClient: The FLClient is responsible for training User-Defined-Model and commuticating with various FLServers. If we use 
 `Model distillation` as our federated learning algorithm, then the FLClient is also responsible for model distillation.
+
+## GFL Blockchain Framework Design
+![imgaes](resource//pictures//gfl_blokchain_framework_design.jpg)
 
 
 ## Install And Quick Start Guide
