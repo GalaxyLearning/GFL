@@ -13,50 +13,50 @@
 # limitations under the License.
 
 import os
-import ipfshttpclient
-from pfl.exceptions.fl_expection import PFLException
+import shutil
 
+import ipfshttpclient
+
+from gfl.settings import ipfs_url, temp_dir
+from gfl.utils.exception import IpfsException
+from gfl.utils.json_utils import JsonUtil
 
 
 class IpfsUtils(object):
 
-    def __init__(self):
-        pass
+    ifps_client = ipfshttpclient.connect(ipfs_url, session=True)
 
-    @staticmethod
-    def init_ipfs_api_instance(url=None):
-        if url is None:
-            raise PFLException("need url parameter")
+    @classmethod
+    def upload_file(cls, file_path):
+        if not os.path.exists(file_path):
+            raise FileNotFoundError()
+        return cls.ifps_client.add(file_path)["Hash"]
 
-        api = ipfshttpclient.connect(url, session=True)
+    @classmethod
+    def download_file(cls, ipfs_hash):
+        try:
+            cls.ifps_client.get(ipfs_hash)
+            temp_path = os.path.join(temp_dir, ipfs_hash)
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+            shutil.move(ipfs_hash, temp_path)
+            return temp_path
+        except:
+            raise IpfsException()
 
-        return api
+    @classmethod
+    def upload_json(cls, obj):
+        return cls.upload_str(JsonUtil.to_json(obj))
 
-    @staticmethod
-    def uploadFile(file_path=None, api=None):
-        if file_path is None or api is None:
-            raise PFLException("parameter error")
-        res = api.add(file_path)
-        return res
+    @classmethod
+    def download_json(cls, ipfs_hash, obj_type):
+        return JsonUtil.from_json(cls.download_str(ipfs_hash), obj_type)
 
-    @staticmethod
-    def downloadFile(file_ipfs_hash=None, file_name=None, api=None):
+    @classmethod
+    def upload_str(cls, s):
+        return cls.ifps_client.add_str(s)
 
-        if file_ipfs_hash is None or api is None or file_name is None:
-            raise PFLException("parameter error")
-        api.get(file_ipfs_hash)
-        if os.path.exists(file_ipfs_hash):
-            os.rename(file_ipfs_hash, file_name)
-            return True
-        return False
+    @classmethod
+    def download_str(cls, ipfs_hash):
+        return cls.ifps_client.cat(ipfs_hash)
 
-
-if __name__ == "__main__":
-    ipfs_api = IpfsUtils.init_ipfs_api_instance(url='/ip4/10.5.18.241/tcp/5001/http')
-
-    # res Hash: QmNprJ78ovcUuGMoMFiihK7GBpCmH578JU8hm43uxYQtBw
-    # res = IpfsUtils.uploadFile("/Users/huyifan/Documents/PFL/LICENSE", ipfs_api)
-    # print(res)
-    print(os.path.abspath("."))
-    res2 = IpfsUtils.downloadFile("QmNprJ78ovcUuGMoMFiihK7GBpCmH578JU8hm43uxYQtBw", "LICENSE2", ipfs_api)
-    print(res2)
