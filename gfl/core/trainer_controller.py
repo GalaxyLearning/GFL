@@ -19,15 +19,25 @@ import threading
 from concurrent.futures import ThreadPoolExecutor
 from gfl.core import communicate_client
 from gfl.exceptions.fl_expection import PFLException
-from gfl.utils.utils import JobUtils, LoggerFactory, ModelUtils
+from gfl.utils.json_utils import JsonUtil
+from gfl.entity.runtime_config import RuntimeClientConfig
+from gfl.utils.utils import JobUtils, LoggerFactory, ModelUtils, RuntimeConfigUtils
 from gfl.core.strategy import WorkModeStrategy, FederateStrategy
 from gfl.core.trainer import TrainStandloneNormalStrategy, TrainMPCNormalStrategy, \
-    TrainStandloneDistillationStrategy, TrainMPCDistillationStrategy
+    TrainStandloneDistillationStrategy, TrainMPCDistillationStrategy, TrainBlockchainNormalSelectionStrategy, TrainBlockchainDistillationSelectionStrategy
 
 JOB_PATH = os.path.join(os.path.abspath("."), "res", "jobs_client")
+RUNTIME_CONFIG_CLIENT_PATH = os.path.join(os.path.abspath("."), "runtime_config_server.json")
+
+class TrainerControllerBase(object):
+    def __init__(self):
+        runtime_server_config_json = JsonUtil.to_json(RuntimeClientConfig())
+        if not os.path.exists(RUNTIME_CONFIG_CLIENT_PATH):
+            with open(RUNTIME_CONFIG_CLIENT_PATH, "w") as f:
+                f.write(runtime_server_config_json)
 
 
-class TrainerController(object):
+class TrainerController(TrainerControllerBase):
     """
     TrainerController is responsible for choosing a apprpriate train strategy for corresponding job
     """
@@ -35,6 +45,7 @@ class TrainerController(object):
     def __init__(self, work_mode=WorkModeStrategy.WORKMODE_STANDALONE, models=None, data=None, client_id=0,
                  client_ip="",
                  client_port=8081, server_url="", curve=False, local_epoch=5, concurrent_num=5):
+        super(TrainerController, self).__init__()
         self.work_mode = work_mode
         self.data = data
         self.client_id = str(client_id)
@@ -51,10 +62,12 @@ class TrainerController(object):
         self.curve = curve
         self.logger = LoggerFactory.getLogger("TrainerController", logging.INFO)
 
+
+
     def start(self):
         if self.work_mode == WorkModeStrategy.WORKMODE_STANDALONE:
-            self._trainer_standalone_exec()
-        else:
+            self.__trainer_standalone_exec()
+        elif self.work_mode == WorkModeStrategy.WORKMODE_CLUSTER:
             response = requests.post(
                 "/".join([self.server_url, "register", self.client_ip, '%s' % self.client_port, '%s' % self.client_id]))
             response_json = response.json()
@@ -64,12 +77,14 @@ class TrainerController(object):
                 self._trainer_mpc_exec()
             else:
                 PFLException("connect to parameter server fail, please check your internet")
+        else:
+            self.__trainer_blockchain_exec()
 
-    def _trainer_standalone_exec(self):
-        t = threading.Timer(5, self._trainer_standalone_exec_impl)
-        t.start()
+    def __trainer_standalone_exec(self):
+         self.trainer_executor_pool.submit(self.__trainer_standalone_exec_impl)
 
-    def _trainer_standalone_exec_impl(self):
+
+    def __trainer_standalone_exec_impl(self):
         self.logger.info("searching for new jobs...")
         JobUtils.get_job_from_remote(None, self.job_path)
         job_list = JobUtils.list_all_jobs(self.job_path)
@@ -93,11 +108,11 @@ class TrainerController(object):
                                                                                                    self.curve)
                 self.run(self.job_train_strategy.get(job.get_job_id()))
 
-    def _trainer_mpc_exec(self):
-        t = threading.Timer(5, self._trainer_mpc_exec_impl)
-        t.start()
+    def __trainer_mpc_exec(self):
+        self.trainer_executor_pool.submit(self._trainer_mpc_exec_impl)
 
-    def _trainer_mpc_exec_impl(self):
+
+    def __trainer_mpc_exec_impl(self):
         self.logger.info("searching for new jobs...")
         JobUtils.get_job_from_remote(self.server_url, self.job_path)
         job_list = JobUtils.list_all_jobs(self.job_path)
@@ -120,6 +135,38 @@ class TrainerController(object):
                                                                                              self.curve)
                 self.run(self.job_train_strategy.get(job.get_job_id()))
 
+
+    def __trainer_blockchain_exec(self):
+        self.trainer_executor_pool.submit(self.__trainer_blockchain_exec_impl)
+
+    def __trainer_blockchain_exec_impl(self):
+        self.logger.info("searching for new jobs...")
+        JobUtils.get_job_from_remote(self.server_url, self.job_path)
+        job_list = JobUtils.list_all_jobs(self.job_path)
+        for job in job_list:
+            if not JobUtils.is_job_completed(job.get_job_id()):
+                pfl_model = ModelUtils.get_model_by_job_id(self.models, job.get_job_id())
+                if job.get_aggregate_strategy() == FederateStrategy.FED_AVG.value:
+                    self.job_train_strategy[job.get_job_id()] = self.job_train_strategy[
+                        job.get_job_id()] = TrainBlockchainNormalSelectionStrategy(job, self.data, self.fed_step, self.client_ip,
+                                                                   self.client_port, self.server_url, self.client_id,
+                                                                   self.local_epoch,
+                                                                   pfl_model, self.curve)
+                else:
+                    self.job_train_strategy[job.get_job_id()] = TrainBlockchainDistillationSelectionStrategy(job, self.data,
+                                                                                             self.fed_step,
+                                                                                             self.client_ip,
+                                                                                             self.client_port,
+                                                                                             self.server_url,
+                                                                                             self.client_id,
+                                                                                             self.local_epoch,
+                                                                                             pfl_model,
+                                                                                             self.curve)
+                self.run(self.job_train_strategy.get(job.get_job_id()))
+
     def run(self, trainer):
         trainer.train()
+
+
+
 
