@@ -138,7 +138,7 @@ class AggregatorController(object):
         pass
 
     def _exec(self, aggregator, job_model_pars, base_model_path, job_id, fed_step):
-        return aggregator._aggregate(job_model_pars, base_model_path, job_id, fed_step)
+        return aggregator.aggregate(job_model_pars, base_model_path, job_id, fed_step)
 
 
 class StandaloneAggregatorController(AggregatorController):

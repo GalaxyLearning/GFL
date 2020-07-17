@@ -86,7 +86,13 @@ class Contract(object):
 class ControllerContract(Contract):
 
     def __init__(self):
-        pass
+        super(ControllerContract, self).__init__()
 
     def controll(self, args=()): # Job
         self.call("controll", ())
+
+
+class StorageContract(Contract):
+
+    def __init__(self):
+        super(StorageContract, self).__init__()
