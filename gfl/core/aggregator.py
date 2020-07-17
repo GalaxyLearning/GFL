@@ -31,7 +31,16 @@ class Aggregator(object):
     def __init__(self):
         pass
 
-    def _aggregate(self):
+    def aggregate(self, job_model_pars, base_model_path, job_id, fed_step):
+        avg_model_par = self._aggregate_exec(job_model_pars)
+        tmp_aggregate_dir = os.path.join(base_model_path, "models_{}".format(job_id))
+        tmp_aggregate_path = os.path.join(base_model_path, "models_{}".format(job_id),
+                                          "{}_{}".format(LOCAL_AGGREGATE_FILE, fed_step))
+        if not os.path.exists(tmp_aggregate_dir):
+            os.makedirs(tmp_aggregate_dir)
+        torch.save(avg_model_par, tmp_aggregate_path)
+
+    def _aggregate_exec(self):
         pass
 
 
@@ -39,22 +48,17 @@ class FedAvgAggregator(Aggregator):
     """
     FedAvgAggregator is responsible for aggregating model parameters by using FedAvg Algorithm
     """
+
     def __init__(self):
         super(FedAvgAggregator, self).__init__()
         self.logger = LoggerFactory.getLogger("FedAvgAggregator", logging.INFO)
 
-    def _aggregate(self, job_model_pars, base_model_path, job_id, fed_step):
+    def _aggregate_exec(self, job_model_pars, base_model_path, job_id, fed_step):
         avg_model_par = job_model_pars[0]
         for key in avg_model_par.keys():
             for i in range(1, len(job_model_pars)):
                 avg_model_par[key] += job_model_pars[i][key]
             avg_model_par[key] = torch.div(avg_model_par[key], len(job_model_pars))
-        tmp_aggregate_dir = os.path.join(base_model_path, "models_{}".format(job_id))
-        tmp_aggregate_path = os.path.join(base_model_path, "models_{}".format(job_id),
-                                          "{}_{}".format(LOCAL_AGGREGATE_FILE, fed_step))
-        if not os.path.exists(tmp_aggregate_dir):
-            os.makedirs(tmp_aggregate_dir)
-        torch.save(avg_model_par, tmp_aggregate_path)
 
         self.logger.info("job: {} the {}th round parameters aggregated successfully!".format(job_id, fed_step))
         return avg_model_par
