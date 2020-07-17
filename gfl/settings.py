@@ -17,4 +17,5 @@ g = globals()
 
 for key, value in g.items():
     if key.rfind("_DIR_PATH"):
-            os.makedirs(value, exist_ok=True)
+        os.makedirs(value, exist_ok=True)
+
