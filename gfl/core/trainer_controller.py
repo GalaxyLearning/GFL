@@ -23,11 +23,11 @@ from gfl.utils.json_utils import JsonUtil
 from gfl.entity.runtime_config import RuntimeClientConfig
 from gfl.utils.utils import JobUtils, LoggerFactory, ModelUtils, RuntimeConfigUtils
 from gfl.core.strategy import WorkModeStrategy, FederateStrategy
+from gfl.settings import JOB_CLIENT_DIR_PATH, RUNTIME_CONFIG_CLIENT_PATH
 from gfl.core.trainer import TrainStandloneNormalStrategy, TrainMPCNormalStrategy, \
     TrainStandloneDistillationStrategy, TrainMPCDistillationStrategy, TrainBlockchainNormalSelectionStrategy, TrainBlockchainDistillationSelectionStrategy
 
-JOB_PATH = os.path.join(os.path.abspath("."), "res", "jobs_client")
-RUNTIME_CONFIG_CLIENT_PATH = os.path.join(os.path.abspath("."), "runtime_config_server.json")
+
 
 class TrainerControllerBase(object):
     def __init__(self):
@@ -52,7 +52,7 @@ class TrainerController(TrainerControllerBase):
         self.local_epoch = local_epoch
         self.concurrent_num = concurrent_num
         self.trainer_executor_pool = ThreadPoolExecutor(self.concurrent_num)
-        self.job_path = JOB_PATH
+        self.job_path = JOB_CLIENT_DIR_PATH
         self.models = models
         self.fed_step = {}
         self.job_train_strategy = {}

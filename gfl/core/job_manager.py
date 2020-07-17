@@ -23,11 +23,10 @@ from gfl.entity.job import Job
 from gfl.exceptions.fl_expection import PFLException
 from gfl.utils.utils import JobUtils, LoggerFactory
 from gfl.core.strategy import WorkModeStrategy, FederateStrategy
+from gfl.settings import JOB_SERVER_DIR_PATH, BASE_MODEL_DIR_PATH
 
 lock = threading.RLock()
 
-JOB_PATH = os.path.join(os.path.abspath("."), "res", "jobs_server")
-MODEL_PATH = os.path.join(os.path.abspath("."), "res", "models")
 
 
 class JobManager(object):
@@ -36,7 +35,7 @@ class JobManager(object):
     """
 
     def __init__(self):
-        self.job_path = JOB_PATH
+        self.job_path = JOB_SERVER_DIR_PATH
         self.logger = LoggerFactory.getLogger("JobManager", logging.INFO)
 
     def generate_job(self, fed_strategy=FederateStrategy.FED_AVG, epoch=0, model=None, distillation_alpha=None, l2_dist=False):
@@ -75,7 +74,7 @@ class JobManager(object):
         """
         with lock:
             # create model dir of this job
-            job_model_dir = os.path.join(MODEL_PATH, "models_{}".format(job.get_job_id()))
+            job_model_dir = os.path.join(BASE_MODEL_DIR_PATH, "models_{}".format(job.get_job_id()))
             if not os.path.exists(job_model_dir):
                 os.makedirs(job_model_dir)
             torch.save(model.state_dict(), os.path.join(job_model_dir, "init_model_pars_{}".format(job.get_job_id())))

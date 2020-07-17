@@ -18,16 +18,13 @@ import threading
 import logging
 from gfl.core import communicate_server
 from concurrent.futures import ThreadPoolExecutor
-from gfl.core.aggregator import StandaloneAggregator, ClusterAggregator
+from gfl.core.aggregator_controller import ClusterAggregatorController, StandaloneAggregatorController
 from gfl.utils.utils import LoggerFactory, CyclicTimer
 from gfl.utils.json_utils import JsonUtil
 from gfl.core.strategy import WorkModeStrategy, FederateStrategy
 from gfl.entity.runtime_config import RuntimeServerConfig
+from gfl.settings import RUNTIME_CONFIG_SERVER_PATH, JOB_SERVER_DIR_PATH, BASE_MODEL_DIR_PATH
 
-
-JOB_PATH = os.path.join(os.path.abspath("."), "res", "jobs_server")
-BASE_MODEL_PATH = os.path.join(os.path.abspath("."), "res", "models")
-RUNTIME_CONFIG_SERVER_PATH = os.path.join(os.path.abspath(".", "runtime_config_server.json"))
 
 
 class FLServer(object):
@@ -51,14 +48,14 @@ class FLStandaloneServer(FLServer):
     def __init__(self):
         super(FLStandaloneServer, self).__init__()
         # self.executor_pool = ThreadPoolExecutor(5)
-        self.aggregator = StandaloneAggregator(WorkModeStrategy.WORKMODE_STANDALONE, JOB_PATH, BASE_MODEL_PATH)
+        self.aggregator = StandaloneAggregatorController(WorkModeStrategy.WORKMODE_STANDALONE, JOB_SERVER_DIR_PATH, BASE_MODEL_DIR_PATH)
         # if federate_strategy == FederateStrategy.FED_AVG:
         #     self.aggregator = FedAvgAggregator(WorkModeStrategy.WORKMODE_STANDALONE, JOB_PATH, BASE_MODEL_PATH)
         # else:
         #     pass
 
     def start(self):
-        t = CyclicTimer(5, self.aggregator.aggregate)
+        t = CyclicTimer(5, self.aggregator.start)
         t.start()
         self.logger.info("Aggregator started")
 
@@ -70,7 +67,7 @@ class FLClusterServer(FLServer):
     def __init__(self, ip, port, api_version):
         super(FLClusterServer, self).__init__()
         self.executor_pool = ThreadPoolExecutor(5)
-        self.aggregator = ClusterAggregator(WorkModeStrategy.WORKMODE_CLUSTER, JOB_PATH, BASE_MODEL_PATH)
+        self.aggregator = ClusterAggregatorController(WorkModeStrategy.WORKMODE_CLUSTER, JOB_SERVER_DIR_PATH, BASE_MODEL_DIR_PATH)
 
         self.ip = ip
         self.port = port
@@ -78,7 +75,7 @@ class FLClusterServer(FLServer):
 
     def start(self):
         self.executor_pool.submit(communicate_server.start_communicate_server, self.api_version, self.ip, self.port)
-        t = CyclicTimer(5, self.aggregator.aggregate)
+        t = CyclicTimer(5, self.aggregator.start)
         t.start()
         self.logger.info("Aggregator started")
 
