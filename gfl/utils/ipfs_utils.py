@@ -17,26 +17,26 @@ import shutil
 
 import ipfshttpclient
 
-from gfl.settings import ipfs_url, temp_dir
+from gfl.settings import ipfs_url, TEMP_DIR_PATH
 from gfl.utils.exception import IpfsException
 from gfl.utils.json_utils import JsonUtil
 
 
 class IpfsUtils(object):
 
-    ifps_client = ipfshttpclient.connect(ipfs_url, session=True)
+    ipfs_client = ipfshttpclient.connect(ipfs_url, session=True)
 
     @classmethod
     def upload_file(cls, file_path):
         if not os.path.exists(file_path):
             raise FileNotFoundError()
-        return cls.ifps_client.add(file_path)["Hash"]
+        return cls.ipfs_client.add(file_path)["Hash"]
 
     @classmethod
     def download_file(cls, ipfs_hash):
         try:
-            cls.ifps_client.get(ipfs_hash)
-            temp_path = os.path.join(temp_dir, ipfs_hash)
+            cls.ipfs_client.get(ipfs_hash)
+            temp_path = os.path.join(TEMP_DIR_PATH, ipfs_hash)
             if os.path.exists(temp_path):
                 os.remove(temp_path)
             shutil.move(ipfs_hash, temp_path)
@@ -54,9 +54,9 @@ class IpfsUtils(object):
 
     @classmethod
     def upload_str(cls, s):
-        return cls.ifps_client.add_str(s)
+        return cls.ipfs_client.add_str(s)
 
     @classmethod
     def download_str(cls, ipfs_hash):
-        return cls.ifps_client.cat(ipfs_hash)
+        return cls.ipfs_client.cat(ipfs_hash)
 
