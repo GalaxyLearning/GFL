@@ -16,10 +16,8 @@ import os, logging
 from flask import Flask, request
 from werkzeug.serving import run_simple
 from gfl.utils.utils import return_data_decorator, LoggerFactory
-
+from gfl.settings import BASE_MODEL_DIR_PATH
 app = Flask(__name__)
-
-BASE_MODEL_PATH = os.path.join(os.path.abspath("."), "res", "models")
 
 logger = LoggerFactory.getLogger(__name__, logging.INFO)
 
@@ -39,7 +37,7 @@ def submit_aggregate_pars():
     for filename in recv_aggregate_files:
         job_id = filename.split("_")[-2]
         tmp_aggregate_file = recv_aggregate_files[filename]
-        job_base_model_dir = os.path.join(BASE_MODEL_PATH, "models_{}".format(job_id), "tmp_aggregate_pars")
+        job_base_model_dir = os.path.join(BASE_MODEL_DIR_PATH, "models_{}".format(job_id), "tmp_aggregate_pars")
         latest_num = len(os.listdir(job_base_model_dir)) - 1
         latest_tmp_aggretate_file_path = os.path.join(job_base_model_dir, "avg_pars_{}".format(latest_num))
         with open(latest_tmp_aggretate_file_path, "wb") as f:

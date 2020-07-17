@@ -23,12 +23,11 @@ import importlib
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 from gfl.entity import runtime_config
-from gfl.exceptions.fl_expection import PFLException
+from gfl.settings import JOB_CLIENT_DIR_PATH, BASE_MODEL_DIR_PATH
+from gfl.core.exception import GFLException
 from gfl.core.strategy import OptimizerStrategy, LossStrategy, SchedulerStrategy
 from gfl.utils.utils import LoggerFactory
 
-JOB_PATH = os.path.join(os.path.abspath("."), "res", "jobs_client")
-LOCAL_MODEL_BASE_PATH = os.path.join(os.path.abspath("."), "res", "models")
 AGGREGATE_PATH = "tmp_aggregate_pars"
 THRESHOLD = 0.5
 
@@ -42,7 +41,7 @@ class TrainStrategy(object):
         self.client_id = client_id
         self.fed_step = {}
         self.job_iter_dict = {}
-        self.job_path = JOB_PATH
+        self.job_path = JOB_CLIENT_DIR_PATH
 
     def _parse_optimizer(self, optimizer, model, lr):
         if optimizer == OptimizerStrategy.OPTIM_SGD.value:
@@ -73,7 +72,7 @@ class TrainStrategy(object):
         :param job_id:
         :return:
         """
-        local_model_dir = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id), "models_{}".format(client_id))
+        local_model_dir = os.path.join(BASE_MODEL_DIR_PATH, "models_{}".format(job_id), "models_{}".format(client_id))
         if not os.path.exists(local_model_dir):
             os.makedirs(local_model_dir)
         return local_model_dir
@@ -96,12 +95,12 @@ class TrainStrategy(object):
         :param job_id:
         :return:
         """
-        job_model_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id), "{}".format(AGGREGATE_PATH))
+        job_model_path = os.path.join(BASE_MODEL_DIR_PATH, "models_{}".format(job_id), "{}".format(AGGREGATE_PATH))
         if not os.path.exists(job_model_path):
             os.makedirs(job_model_path)
-            init_model_pars_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id),
+            init_model_pars_path = os.path.join(BASE_MODEL_DIR_PATH, "models_{}".format(job_id),
                                                 "init_model_pars_{}".format(job_id))
-            first_aggregate_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id), "tmp_aggregate_pars",
+            first_aggregate_path = os.path.join(BASE_MODEL_DIR_PATH, "models_{}".format(job_id), "tmp_aggregate_pars",
                                                 "avg_pars_{}".format(0))
             if os.path.exists(init_model_pars_path):
                 shutil.move(init_model_pars_path, first_aggregate_path)
@@ -188,7 +187,7 @@ class TrainNormalStrategy(TrainStrategy):
             self._prepare_job_model(job, None)
 
     def _prepare_job_model(self, job, server_url=None):
-        job_model_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job.get_job_id()))
+        job_model_path = os.path.join(BASE_MODEL_DIR_PATH, "models_{}".format(job.get_job_id()))
         job_init_model_path = os.path.join(job_model_path, "init_model_{}.py".format(job.get_job_id()))
         if server_url is None:
             # with open(job.get_train_model(), "r") as model_f:
@@ -210,7 +209,7 @@ class TrainNormalStrategy(TrainStrategy):
                 self._write_bfile_to_local(response, job_init_model_path)
 
     def _prepare_job_init_model_pars(self, job, server_url):
-        job_init_model_pars_dir = os.path.join(LOCAL_MODEL_BASE_PATH,
+        job_init_model_pars_dir = os.path.join(BASE_MODEL_DIR_PATH,
                                                "models_{}".format(job.get_job_id()), "tmp_aggregate_pars")
         if not os.path.exists(job_init_model_pars_dir):
             os.makedirs(job_init_model_pars_dir)
@@ -226,7 +225,7 @@ class TrainNormalStrategy(TrainStrategy):
                     f.write(chunk)
 
     def _prepare_upload_client_model_pars(self, job_id, client_id, fed_avg):
-        job_init_model_pars_dir = os.path.join(os.path.abspath("."), LOCAL_MODEL_BASE_PATH,
+        job_init_model_pars_dir = os.path.join(os.path.abspath("."), BASE_MODEL_DIR_PATH,
                                                "models_{}".format(job_id), "models_{}".format(client_id))
         tmp_parameter_path = "tmp_parameters_{}".format(fed_avg)
 
@@ -250,7 +249,7 @@ class TrainNormalStrategy(TrainStrategy):
         optimizer_class = optimizer.__class__
         params = state_dict['param_groups'][0]
         if not isinstance(optimizer, torch.optim.Optimizer):
-            raise PFLException("optimizer get wrong type value")
+            raise GFLException("optimizer get wrong type value")
 
         if isinstance(optimizer, torch.optim.SGD):
             return optimizer_class(model.parameters(), lr=params['lr'], momentum=params['momentum'],
@@ -266,7 +265,7 @@ class TrainNormalStrategy(TrainStrategy):
         for scheduler_item in SchedulerStrategy.__members__.items():
             scheduler_names.append(scheduler_item.value)
         if scheduler.__class__.__name__ not in scheduler_names:
-            raise PFLException("optimizer get wrong type value")
+            raise GFLException("optimizer get wrong type value")
         optimizer = scheduler.__getattribute__("optimizer")
         params = scheduler.state_dict()
         new_optimizer = self._generate_new_optimizer(model, optimizer)
@@ -348,7 +347,7 @@ class TrainDistillationStrategy(TrainNormalStrategy):
         :param fed_step:
         :return:
         """
-        job_model_base_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id))
+        job_model_base_path = os.path.join(BASE_MODEL_DIR_PATH, "models_{}".format(job_id))
         other_models_pars = []
         fed_step += 1
         connected_clients_num = 0
@@ -523,7 +522,7 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
                 self.loss_list.append(loss)
                 self.logger.info("model distillation success")
             else:
-                init_model_pars_dir = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(self.job.get_job_id()),
+                init_model_pars_dir = os.path.join(BASE_MODEL_DIR_PATH, "models_{}".format(self.job.get_job_id()),
                                                    "models_{}".format(self.client_id))
                 if not os.path.exists(os.path.join(init_model_pars_dir, "tmp_parameters_{}".format(1))):
                     new_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
@@ -640,7 +639,7 @@ class TrainMPCDistillationStrategy(TrainDistillationStrategy):
                 self.logger.info("model distillating....")
                 self.fed_step[self.job.get_job_id()] = self.fed_step.get(self.job.get_job_id()) + 1
                 self.acc, loss = self._train_with_distillation(self.model, other_model_pars, self.local_epoch,
-                                                               os.path.join(LOCAL_MODEL_BASE_PATH,
+                                                               os.path.join(BASE_MODEL_DIR_PATH,
                                                                             "models_{}".format(self.job.get_job_id()),
                                                                             "models_{}".format(self.client_id)),
                                                                self.job.get_l2_dist())
@@ -653,7 +652,7 @@ class TrainMPCDistillationStrategy(TrainDistillationStrategy):
                     [self.server_url, "modelpars", "%s" % self.client_id, self.job.get_job_id(),
                      "%s" % (self.fed_step.get(self.job.get_job_id()) + 1)]), data=None, files=files)
             else:
-                job_model_client_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(self.job.get_job_id()),
+                job_model_client_path = os.path.join(BASE_MODEL_DIR_PATH, "models_{}".format(self.job.get_job_id()),
                                                      "models_{}".format(self.client_id))
                 if not os.path.exists(os.path.join(job_model_client_path, "tmp_parameters_{}".format(
                         self.fed_step.get(self.job.get_job_id()) + 1))):

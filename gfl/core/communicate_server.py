@@ -21,12 +21,10 @@ from werkzeug.serving import run_simple
 from gfl.entity.runtime_config import RuntimeServerConfig
 from gfl.core.job_manager import JobManager
 from gfl.utils.json_utils import JsonUtil
+from gfl.settings import JOB_SERVER_DIR_PATH, BASE_MODEL_DIR_PATH, RUNTIME_CONFIG_SERVER_PATH
 from gfl.utils.utils import JobEncoder, return_data_decorator, LoggerFactory, RuntimeConfigUtils
 
 API_VERSION = "/api/v1"
-JOB_PATH = os.path.join(os.path.abspath("."), "res", "jobs_server")
-BASE_MODEL_PATH = os.path.join(os.path.abspath("."), "res", "models")
-RUNTIME_CONFIG_SERVER_PATH = os.path.join(os.path.abspath(".", "runtime_config_server.json"))
 
 logger = LoggerFactory.getLogger(__name__, logging.INFO)
 
@@ -50,9 +48,9 @@ def register_trainer(ip, port, client_id):
     runtime_server_config = RuntimeConfigUtils.get_obj_from_runtime_config_file(RUNTIME_CONFIG_SERVER_PATH,
                                                                                 RuntimeServerConfig)
     if trainer_host not in runtime_server_config.CONNECTED_TRAINER_LIST:
-        job_list = JobManager.get_job_list(JOB_PATH)
+        job_list = JobManager.get_job_list(JOB_SERVER_DIR_PATH)
         for job in job_list:
-            job_model_client_dir = os.path.join(BASE_MODEL_PATH, "models_{}".format(job.get_job_id()),
+            job_model_client_dir = os.path.join(BASE_MODEL_DIR_PATH, "models_{}".format(job.get_job_id()),
                                                 "models_{}".format(client_id))
             if not os.path.exists(job_model_client_dir):
                 os.makedirs(job_model_client_dir)
@@ -80,7 +78,7 @@ def offline(ip, port):
 @return_data_decorator
 def acquire_job_list():
     job_str_list = []
-    job_list = JobManager.get_job_list(JOB_PATH)
+    job_list = JobManager.get_job_list(JOB_SERVER_DIR_PATH)
     for job in job_list:
         job_str = json.dumps(job, cls=JobEncoder)
         job_str_list.append(job_str)
@@ -89,13 +87,13 @@ def acquire_job_list():
 
 @app.route("/modelpars/<job_id>", methods=['GET'], endpoint='acquire_init_model_pars')
 def acquire_init_model_pars(job_id):
-    init_model_pars_dir = os.path.join(BASE_MODEL_PATH, "models_{}".format(job_id))
+    init_model_pars_dir = os.path.join(BASE_MODEL_DIR_PATH, "models_{}".format(job_id))
     return send_from_directory(init_model_pars_dir, "init_model_pars_{}".format(job_id), as_attachment=True)
 
 
 @app.route("/init_model/<job_id>", methods=['GET'], endpoint='acquire_init_model')
 def acquire_init_model(job_id):
-    init_model_path = os.path.join(BASE_MODEL_PATH, "models_{}".format(job_id))
+    init_model_path = os.path.join(BASE_MODEL_DIR_PATH, "models_{}".format(job_id))
     return send_from_directory(init_model_path, "init_model_{}".format(job_id), as_attachment=True)
 
 
@@ -103,10 +101,10 @@ def acquire_init_model(job_id):
 @return_data_decorator
 def submit_model_parameter(client_id, job_id, fed_step):
     tmp_parameter_file = request.files['tmp_parameter_file']
-    model_pars_dir = os.path.join(BASE_MODEL_PATH, "models_{}".format(job_id), "models_{}".format(client_id))
+    model_pars_dir = os.path.join(BASE_MODEL_DIR_PATH, "models_{}".format(job_id), "models_{}".format(client_id))
     if not os.path.exists(model_pars_dir):
         os.makedirs(model_pars_dir)
-    model_pars_path = os.path.join(BASE_MODEL_PATH, "models_{}".format(job_id), "models_{}".format(client_id),
+    model_pars_path = os.path.join(BASE_MODEL_DIR_PATH, "models_{}".format(job_id), "models_{}".format(client_id),
                                    "tmp_parameters_{}".format(fed_step))
     with open(model_pars_path, "wb") as f:
         for line in tmp_parameter_file.readlines():
@@ -117,8 +115,8 @@ def submit_model_parameter(client_id, job_id, fed_step):
 
 @app.route("/otherparameters/<job_id>/<client_id>/<fed_step>", methods=['GET'], endpoint='get_other_parameters')
 def get_other_parameters(job_id, client_id, fed_step):
-    tmp_parameter_dir = os.path.join(BASE_MODEL_PATH, "models_{}".format(job_id), "models_{}".format(client_id))
-    tmp_parameter_path = os.path.join(BASE_MODEL_PATH, "models_{}".format(job_id), "models_{}".format(client_id),
+    tmp_parameter_dir = os.path.join(BASE_MODEL_DIR_PATH, "models_{}".format(job_id), "models_{}".format(client_id))
+    tmp_parameter_path = os.path.join(BASE_MODEL_DIR_PATH, "models_{}".format(job_id), "models_{}".format(client_id),
                                       "tmp_parameters_{}".format(fed_step))
 
     if not os.path.exists(tmp_parameter_path):
@@ -131,7 +129,7 @@ def get_other_parameters(job_id, client_id, fed_step):
 @return_data_decorator
 def get_connected_clients(job_id):
     connected_clients_id = []
-    job_model_path = os.path.join(BASE_MODEL_PATH, "models_{}".format(job_id))
+    job_model_path = os.path.join(BASE_MODEL_DIR_PATH, "models_{}".format(job_id))
     for model_dir in os.listdir(job_model_path):
         if model_dir.find("models_") != -1:
             connected_clients_id.append(int(model_dir.split("_")[-1]))
