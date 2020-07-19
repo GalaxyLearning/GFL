@@ -120,7 +120,6 @@ class ControllerContract(Contract):
 
 
 
-
 class StorageContract(Contract):
 
     def __init__(self,
@@ -130,6 +129,10 @@ class StorageContract(Contract):
                  bytecode: str = None):
         super(StorageContract, self).__init__(w3=w3, name="storage", address=address,
                                                  abi=abi, bytecode=bytecode)
+
+
+    def set_fed_step(self, fed_step: int) -> Any:
+        return self.sync_transact("setFedStep", [fed_step])
 
 
     def set_fed_step(self, fed_step: int) -> Any:
