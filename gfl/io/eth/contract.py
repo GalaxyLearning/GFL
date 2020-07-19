@@ -138,6 +138,10 @@ class StorageContract(Contract):
     def set_fed_step(self, fed_step: int) -> Any:
         return self.sync_transact("setFedStep", [fed_step])
 
+
+    def set_fed_step(self, fed_step: int) -> Any:
+        return self.sync_transact("setFedStep", [fed_step])
+
     def get_fed_step(self) -> int:
         return self.call("getFedStep")
 
