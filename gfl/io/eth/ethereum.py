@@ -1,6 +1,6 @@
 from web3 import Web3
 
-from gfl.io.eth.contract import Contract
+from gfl.io.eth.contract import Contract, ControllerContract, StorageContract
 
 
 class Ethereum(object):
@@ -26,5 +26,11 @@ class Ethereum(object):
         return Contract(name=name, address=address, w3=self.__w3)
 
     def controller_contract(self, address=None):
-        return self.contract("Conr", address)
+        return ControllerContract(w3=self.__w3, address=address)
+
+    def storage_contract(self, address=None):
+        return StorageContract(w3=self.__w3, address=address)
+
+    def w3_instance(self):
+        return self.__w3
 

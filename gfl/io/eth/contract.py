@@ -12,7 +12,7 @@ class Contract(object):
     def __init__(self,
                  w3: Web3,
                  name: str,
-                 address: Union[str, Address, ChecksumAddress],
+                 address: Union[str, Address, ChecksumAddress] = None,
                  abi = None,
                  bytecode: str = None):
         super(Contract, self).__init__()
@@ -23,7 +23,7 @@ class Contract(object):
         self.bytecode = bytecode if bytecode is not None else load_bytecode(name)
 
         self._w3 = w3
-        self.__web3_contract = self._w3.eth.contract(address, abi=self.abi, bytecode=self.bytecode)
+        self.__web3_contract = self._w3.eth.contract(address=address, abi=self.abi, bytecode=self.bytecode)
 
     def call(self, name: str, args: Union[tuple, list] = (), transaction: dict = None, block_identifier = "latest") -> Any:
         """
@@ -38,7 +38,7 @@ class Contract(object):
         method = self.__web3_contract.get_function_by_name(name)
         return method(*args).call(transaction=transaction, block_identifier=block_identifier)
 
-    def transact(self, name, args: Union[tuple, list] = (), transaction: dict = None) -> dict:
+    def transact(self, name, args: Union[tuple, list] = (), transaction: dict = None) -> str:
         """
         Execute the specified method by sending a new public transaction.
 
@@ -48,7 +48,7 @@ class Contract(object):
         :return:
         """
         method = self.__web3_contract.get_function_by_name(name)
-        return method(*args).transact(transaction=transaction)
+        return method(*args).transact(transaction=transaction).hex()
 
     def sync_transact(self, name, args: Union[tuple, list] = (), transaction: dict = None, timeout: int = 120) -> dict:
         """
@@ -61,7 +61,8 @@ class Contract(object):
         :param timeout:
         :return:
         """
-        tx_hash = self.transact(name, args, transaction)
+        method = self.__web3_contract.get_function_by_name(name)
+        tx_hash = method(*args).transact(transaction=transaction)
         try:
             return self._w3.eth.waitForTransactionReceipt(tx_hash, timeout=timeout)
         except:
@@ -85,8 +86,13 @@ class Contract(object):
 
 class ControllerContract(Contract):
 
-    def __init__(self):
-        super(ControllerContract, self).__init__()
+    def __init__(self,
+                 w3: Web3,
+                 address: Union[str, Address, ChecksumAddress] = None,
+                 abi = None,
+                 bytecode: str = None):
+        super(ControllerContract, self).__init__(w3=w3, name="controller", address=address,
+                                                 abi=abi, bytecode=bytecode)
 
     def set_job_mapping_storage_contract(self, job_id: str, storage_contract_address: Address) -> Any:
         """
@@ -110,14 +116,19 @@ class ControllerContract(Contract):
         self.sync_transact("SetJobStatus", [job_id, status])
 
     def get_job_status(self, job_id: str) -> int:
-        self.call("GetJobStatus", [job_id])
+        return self.call("GetJobStatus", [job_id])
 
 
 
 class StorageContract(Contract):
 
-    def __init__(self):
-        super(StorageContract, self).__init__()
+    def __init__(self,
+                 w3: Web3,
+                 address: Union[str, Address, ChecksumAddress] = None,
+                 abi = None,
+                 bytecode: str = None):
+        super(StorageContract, self).__init__(w3=w3, name="storage", address=address,
+                                                 abi=abi, bytecode=bytecode)
 
     def get_fed_step(self) -> int:
         return self.call("GetFedStep")
