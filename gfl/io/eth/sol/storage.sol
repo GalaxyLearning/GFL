@@ -1,3 +1,4 @@
+pragma experimental ABIEncoderV2;
 pragma solidity >=0.4.22 <= 0.6.11;
 
 
@@ -18,15 +19,15 @@ contract Storage {
     address[] selectedClients;
 
     // fed step -> model parameters
-    mapping(uint => ModelParameter[]) public modelParameters;
+    mapping(uint => ModelParameter[]) modelParameters;
 
     // fed step -> selected client address
     mapping(uint => address) selectedAddress;
 
     // fed step -> aggregated model parameters
-    mapping(uint => ModelParameter) public aggregatedParameters;
+    mapping(uint => ModelParameter) aggregatedParameters;
 
-    string final_aggregated_model_parameters public;
+    string final_aggregated_model_parameters;
 
     function __addressValidation(address sender) private view returns(bool) {
 
@@ -63,7 +64,7 @@ contract Storage {
         }else if(isHave  && op == 1){
             activateClients[sym] = activateClients[activateClients.length - 1];
             delete activateClients[activateClients.length - 1];
-            activateClients.length-- ;
+
         }
 
     }
@@ -75,11 +76,11 @@ contract Storage {
         modelParameters[_fedStep].push(modelParameter);
     }
 
-    // function downloadModelParametersIpfsHash(uint _fedStep, address _clientAddress) public view returns(ModelParameter) {
+    function downloadModelParametersIpfsHash(uint _fedStep, address _clientAddress) public view returns(ModelParameter[] memory) {
 
-    //     return modelParameters[_fedStep];
+       return modelParameters[_fedStep];
 
-    // }
+    }
     function uploadAggreagtedParametersIpfsHash(uint _fedStep, address _modelClientAddress, string memory _aggregatedModelParsIpfsHash) public {
 
         ModelParameter memory modelParameter = ModelParameter(_modelClientAddress, _aggregatedModelParsIpfsHash);
@@ -88,14 +89,20 @@ contract Storage {
 
     }
 
+    function downloadAggreagtedParametersIpfsHash(uint _fedStep) public view returns(ModelParameter memory){
+        return aggregatedParameters[_fedStep];
+    }
+
+
     function uploadFinalAggregatedParametersIpfsHash(string memory _finalAggregatedIpfsHash) public {
 
         final_aggregated_model_parameters = _finalAggregatedIpfsHash;
     }
 
 
-
-
+    function downloadFinalAggregatedParametersIpfsHash() public view returns (string memory) {
+        return final_aggregated_model_parameters;
+    }
 
 
 }
