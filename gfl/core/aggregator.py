@@ -32,7 +32,7 @@ class Aggregator(object):
         pass
 
     def aggregate(self, job_model_pars, base_model_path, job_id, fed_step):
-        avg_model_par = self._aggregate_exec(job_model_pars)
+        avg_model_par = self._aggregate_exec(job_model_pars, base_model_path, job_id, fed_step)
         tmp_aggregate_dir = os.path.join(base_model_path, "models_{}".format(job_id))
         tmp_aggregate_path = os.path.join(base_model_path, "models_{}".format(job_id),
                                           "{}_{}".format(LOCAL_AGGREGATE_FILE, fed_step))
@@ -40,7 +40,8 @@ class Aggregator(object):
             os.makedirs(tmp_aggregate_dir)
         torch.save(avg_model_par, tmp_aggregate_path)
 
-    def _aggregate_exec(self):
+
+    def _aggregate_exec(self, job_model_pars, base_model_path, job_id, fed_step):
         pass
 
 
