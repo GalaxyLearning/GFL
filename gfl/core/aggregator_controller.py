@@ -27,10 +27,6 @@ from gfl.core.aggregator import FedAvgAggregator
 from gfl.settings import RUNTIME_CONFIG_SERVER_PATH
 
 
-
-
-
-
 class AggregatorController(object):
     """
     Aggregator is responsible for aggregating model parameters
@@ -134,7 +130,7 @@ class AggregatorController(object):
     def start(self):
         pass
 
-    def aggregate(self):
+    def aggregate(self, job):
         pass
 
     def _exec(self, aggregator, job_model_pars, base_model_path, job_id, fed_step):
