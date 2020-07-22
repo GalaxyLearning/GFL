@@ -16,14 +16,16 @@ import os
 import importlib
 from gfl.utils.utils import JobUtils
 from gfl.entity.model import Model
-from gfl.path import PathFactory
+
+JOB_PATH = os.path.join(os.path.abspath("."), "res", "jobs_client")
+BASE_MODEL_PATH = os.path.join(os.path.abspath("."), "res", "models")
 
 
 class FLClient(object):
     def __init__(self):
         super(FLClient, self).__init__()
-        self.job_path = PathFactory.get_job_client_dir_path()
-        self.base_model_path = PathFactory.get_base_model_dir_path()
+        self.job_path = JOB_PATH
+        self.base_model_path = BASE_MODEL_PATH
 
 
     def get_remote_pfl_models(self, server_url=None):

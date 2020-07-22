@@ -23,12 +23,13 @@ import importlib
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 from gfl.entity import runtime_config
-from gfl.path import PathFactory
-from gfl.core.exception import GFLException
+from gfl.exceptions.fl_expection import PFLException
 from gfl.core.strategy import OptimizerStrategy, LossStrategy, SchedulerStrategy
 from gfl.utils.utils import LoggerFactory
 
-
+JOB_PATH = os.path.join(os.path.abspath("."), "res", "jobs_client")
+LOCAL_MODEL_BASE_PATH = os.path.join(os.path.abspath("."), "res", "models")
+AGGREGATE_PATH = "tmp_aggregate_pars"
 THRESHOLD = 0.5
 
 
@@ -41,7 +42,7 @@ class TrainStrategy(object):
         self.client_id = client_id
         self.fed_step = {}
         self.job_iter_dict = {}
-        self.job_path = PathFactory.get_job_client_dir_path()
+        self.job_path = JOB_PATH
 
     def _parse_optimizer(self, optimizer, model, lr):
         if optimizer == OptimizerStrategy.OPTIM_SGD.value:
@@ -65,6 +66,18 @@ class TrainStrategy(object):
         loss = F.mse_loss(output, label)
         return loss
 
+    def _create_job_models_dir(self, client_id, job_id):
+        """
+        Create local temporary model directory according to client_id and job_id
+        :param client_id:
+        :param job_id:
+        :return:
+        """
+        local_model_dir = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id), "models_{}".format(client_id))
+        if not os.path.exists(local_model_dir):
+            os.makedirs(local_model_dir)
+        return local_model_dir
+
     def _load_job_model(self, job_id, job_model_class_name):
         """
         Load model object according to job_id and model's class name
@@ -83,18 +96,20 @@ class TrainStrategy(object):
         :param job_id:
         :return:
         """
-        job_model_aggregate_path = PathFactory.get_job_model_aggregate_path(job_id)
-        if not os.path.exists(job_model_aggregate_path):
-            os.makedirs(job_model_aggregate_path)
-            init_model_pars_path = PathFactory.get_init_model_pars_path(job_id)
-            first_aggregate_path = PathFactory.get_first_aggregate_path(job_id)
+        job_model_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id), "{}".format(AGGREGATE_PATH))
+        if not os.path.exists(job_model_path):
+            os.makedirs(job_model_path)
+            init_model_pars_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id),
+                                                "init_model_pars_{}".format(job_id))
+            first_aggregate_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id), "tmp_aggregate_pars",
+                                                "avg_pars_{}".format(0))
             if os.path.exists(init_model_pars_path):
                 shutil.move(init_model_pars_path, first_aggregate_path)
-        file_list = os.listdir(job_model_aggregate_path)
-        file_list = sorted(file_list, key=lambda x: os.path.getmtime(os.path.join(job_model_aggregate_path, x)))
+        file_list = os.listdir(job_model_path)
+        file_list = sorted(file_list, key=lambda x: os.path.getmtime(os.path.join(job_model_path, x)))
         
         if len(file_list) != 0:
-            return os.path.join(job_model_aggregate_path, file_list[-1]), len(file_list)
+            return os.path.join(job_model_path, file_list[-1]), len(file_list)
         return None, 0
 
 
@@ -118,7 +133,7 @@ class TrainNormalStrategy(TrainStrategy):
     def train(self):
         pass
 
-    def _train(self, train_model, fed_step, local_epoch):
+    def _train(self, train_model, job_models_path, fed_step, local_epoch):
         """
         Traditional training method
         :param train_model:
@@ -161,8 +176,7 @@ class TrainNormalStrategy(TrainStrategy):
             step += 1
             accuracy = acc / len(dataloader.dataset)
         torch.save(model.state_dict(),
-                       PathFactory.get_model_pars_path(self.job_model_path, self.client_id, fed_step))
-
+                       os.path.join(job_models_path, "tmp_parameters_{}".format(fed_step)))
 
         return accuracy, loss.item()
 
@@ -174,7 +188,8 @@ class TrainNormalStrategy(TrainStrategy):
             self._prepare_job_model(job, None)
 
     def _prepare_job_model(self, job, server_url=None):
-        job_init_model_path = PathFactory.get_job_init_model_code_path(job.get_job_id())
+        job_model_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job.get_job_id()))
+        job_init_model_path = os.path.join(job_model_path, "init_model_{}.py".format(job.get_job_id()))
         if server_url is None:
             # with open(job.get_train_model(), "r") as model_f:
             #     if not os.path.exists(job_init_model_path):
@@ -188,12 +203,15 @@ class TrainNormalStrategy(TrainStrategy):
                         for line in f.readlines():
                             model_f.write(line)
         else:
+            if not os.path.exists(job_model_path):
+                os.makedirs(job_model_path)
             if not os.path.exists(job_init_model_path):
                 response = requests.get("/".join([server_url, "init_model", job.get_job_id()]))
                 self._write_bfile_to_local(response, job_init_model_path)
 
     def _prepare_job_init_model_pars(self, job, server_url):
-        job_init_model_pars_dir = PathFactory.get_job_model_aggregate_path(job.get_job_id())
+        job_init_model_pars_dir = os.path.join(LOCAL_MODEL_BASE_PATH,
+                                               "models_{}".format(job.get_job_id()), "tmp_aggregate_pars")
         if not os.path.exists(job_init_model_pars_dir):
             os.makedirs(job_init_model_pars_dir)
         if len(os.listdir(job_init_model_pars_dir)) == 0:
@@ -208,8 +226,8 @@ class TrainNormalStrategy(TrainStrategy):
                     f.write(chunk)
 
     def _prepare_upload_client_model_pars(self, job_id, client_id, fed_avg):
-
-        job_init_model_pars_dir = PathFactory.get_model_client_pars_dir(job_id, client_id)
+        job_init_model_pars_dir = os.path.join(os.path.abspath("."), LOCAL_MODEL_BASE_PATH,
+                                               "models_{}".format(job_id), "models_{}".format(client_id))
         tmp_parameter_path = "tmp_parameters_{}".format(fed_avg)
 
         files = {
@@ -219,7 +237,7 @@ class TrainNormalStrategy(TrainStrategy):
         return files
 
     def _save_final_parameters(self, job_id, final_pars_path):
-        file_path = PathFactory.get_final_model_pars_path(job_id)
+        file_path = os.path.join(os.path.abspath("."), "final_model_pars_{}".format(job_id))
         if os.path.exists(file_path):
             return
         with open(file_path, "wb") as w_f:
@@ -232,7 +250,7 @@ class TrainNormalStrategy(TrainStrategy):
         optimizer_class = optimizer.__class__
         params = state_dict['param_groups'][0]
         if not isinstance(optimizer, torch.optim.Optimizer):
-            raise GFLException("optimizer get wrong type value")
+            raise PFLException("optimizer get wrong type value")
 
         if isinstance(optimizer, torch.optim.SGD):
             return optimizer_class(model.parameters(), lr=params['lr'], momentum=params['momentum'],
@@ -248,7 +266,7 @@ class TrainNormalStrategy(TrainStrategy):
         for scheduler_item in SchedulerStrategy.__members__.items():
             scheduler_names.append(scheduler_item.value)
         if scheduler.__class__.__name__ not in scheduler_names:
-            raise GFLException("optimizer get wrong type value")
+            raise PFLException("optimizer get wrong type value")
         optimizer = scheduler.__getattribute__("optimizer")
         params = scheduler.state_dict()
         new_optimizer = self._generate_new_optimizer(model, optimizer)
@@ -321,8 +339,7 @@ class TrainDistillationStrategy(TrainNormalStrategy):
 
     def __init__(self, job, data, fed_step, client_id, models, curve):
         super(TrainDistillationStrategy, self).__init__(job, data, fed_step, client_id, models, curve)
-        self.job_model_path = PathFactory.get_job_model_path(job.get_job_id())
-
+        self.job_model_path = os.path.join(os.path.abspath("."), "res", "models", "models_{}".format(job.get_job_id()))
 
     def _load_other_models_pars(self, job_id, fed_step):
         """
@@ -331,7 +348,7 @@ class TrainDistillationStrategy(TrainNormalStrategy):
         :param fed_step:
         :return:
         """
-        job_model_base_path = PathFactory.get_job_model_path(job_id)
+        job_model_base_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id))
         other_models_pars = []
         fed_step += 1
         connected_clients_num = 0
@@ -356,7 +373,7 @@ class TrainDistillationStrategy(TrainNormalStrategy):
             return 0
         return received / total
 
-    def _train_with_distillation(self, train_model, other_models_pars, local_epoch, job_l2_dist):
+    def _train_with_distillation(self, train_model, other_models_pars, local_epoch, job_models_path, job_l2_dist):
         """
         Distillation training method
         :param train_model:
@@ -409,9 +426,7 @@ class TrainDistillationStrategy(TrainNormalStrategy):
             step += 1
             accuracy = acc / len(dataloader.dataset)
         torch.save(model.state_dict(),
-                   PathFactory.get_model_pars_path(self.job_model_path, self.client_id,
-                                                   self.fed_step[self.job.get_job_id()] + 1))
-
+                       os.path.join(job_models_path, "tmp_parameters_{}".format(self.fed_step[self.job.get_job_id()] + 1)))
         return accuracy, loss.item()
 
 
@@ -440,10 +455,10 @@ class TrainStandloneNormalStrategy(TrainNormalStrategy):
                 break
             aggregate_file, fed_step = self._find_latest_aggregate_model_pars(self.job.get_job_id())
             if aggregate_file is not None and self.fed_step.get(self.job.get_job_id()) != fed_step:
-                # if self.job.get_job_id() in runtime_config.EXEC_JOB_LIST:
-                #     runtime_config.EXEC_JOB_LIST.remove(self.job.get_job_id())
+                if self.job.get_job_id() in runtime_config.EXEC_JOB_LIST:
+                    runtime_config.EXEC_JOB_LIST.remove(self.job.get_job_id())
                 self.fed_step[self.job.get_job_id()] = fed_step
-            # if self.job.get_job_id() not in runtime_config.EXEC_JOB_LIST:
+            if self.job.get_job_id() not in runtime_config.EXEC_JOB_LIST:
                 # job_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
                 if aggregate_file is not None:
                     self.logger.info("load {} parameters".format(aggregate_file))
@@ -451,10 +466,11 @@ class TrainStandloneNormalStrategy(TrainNormalStrategy):
                     model_pars = torch.load(aggregate_file)
                     new_model.load_state_dict(model_pars)
                     self.model.set_model(new_model)
+                job_models_path = self._create_job_models_dir(self.client_id, self.job.get_job_id())
                 self.logger.info("job_{} is training, Aggregator strategy: {}".format(self.job.get_job_id(),
                                                                                       self.job.get_aggregate_strategy()))
-                # runtime_config.EXEC_JOB_LIST.append(self.job.get_job_id())
-                self.acc, loss = self._train(self.model, self.fed_step.get(self.job.get_job_id()), self.local_epoch)
+                runtime_config.EXEC_JOB_LIST.append(self.job.get_job_id())
+                self.acc, loss = self._train(self.model, job_models_path, self.fed_step.get(self.job.get_job_id()), self.local_epoch)
                 self.loss_list.append(loss)
                 self.accuracy_list.append(self.acc)
                 self.logger.info("job_{} {}th train accuracy: {}".format(self.job.get_job_id(),
@@ -479,7 +495,8 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
             # print("test_iter_num: ", self.job_iter_dict[self.job.get_job_id()])
             if self.fed_step.get(self.job.get_job_id()) is not None and self.fed_step.get(
                     self.job.get_job_id()) >= self.job.get_epoch():
-                final_pars_path = PathFactory.get_model_pars_path(self.job_model_path, self.client_id, self.fed_step.get(self.job.get_job_id()))
+                final_pars_path = os.path.join(self.job_model_path, "models_{}".format(self.client_id),
+                                               "tmp_parameters_{}".format(self.fed_step.get(self.job.get_job_id())))
                 if os.path.exists(final_pars_path):
                     self._save_final_parameters(self.job.get_job_id(), final_pars_path)
                     self.logger.info("job_{} completed, final accuracy: {}".format(self.job.get_job_id(), self.acc))
@@ -490,6 +507,7 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
             other_model_pars, connected_clients_num = self._load_other_models_pars(self.job.get_job_id(),
                                                                                    self.fed_step[self.job.get_job_id()])
             # job_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
+            job_models_path = self._create_job_models_dir(self.client_id, self.job.get_job_id())
 
             self.logger.info("job_{} is training, Aggregator strategy: {}, L2_dist: {}".format(self.job.get_job_id(),
                                                                                                self.job.get_aggregate_strategy(),
@@ -499,20 +517,20 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
 
                 self.logger.info("model distillating....")
                 self.fed_step[self.job.get_job_id()] = self.fed_step.get(self.job.get_job_id()) + 1
-                self.acc, loss = self._train_with_distillation(self.model, other_model_pars, self.local_epoch,
+                self.acc, loss = self._train_with_distillation(self.model, other_model_pars, self.local_epoch, job_models_path,
                                                                self.job.get_l2_dist())
                 self.accuracy_list.append(self.acc)
                 self.loss_list.append(loss)
                 self.logger.info("model distillation success")
             else:
-
-                init_model_pars_path = PathFactory.get_model_pars_path(self.job_model_path, self.client_id, 1)
-                if not os.path.exists(init_model_pars_path):
+                init_model_pars_dir = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(self.job.get_job_id()),
+                                                   "models_{}".format(self.client_id))
+                if not os.path.exists(os.path.join(init_model_pars_dir, "tmp_parameters_{}".format(1))):
                     new_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
                     model_pars = torch.load(aggregate_file)
                     new_model.load_state_dict(model_pars)
                     self.model.set_model(new_model)
-                    self._train(self.model, 1, self.local_epoch)
+                    self._train(self.model, init_model_pars_dir, 1, self.local_epoch)
 
 
 class TrainMPCNormalStrategy(TrainNormalStrategy):
@@ -548,6 +566,7 @@ class TrainMPCNormalStrategy(TrainNormalStrategy):
             self._prepare_job_init_model_pars(self.job, self.server_url)
             aggregate_file, fed_step = self._find_latest_aggregate_model_pars(self.job.get_job_id())
             if aggregate_file is not None and self.fed_step.get(self.job.get_job_id()) != fed_step:
+                job_models_path = self._create_job_models_dir(self.client_id, self.job.get_job_id())
                 # job_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
                 self.logger.info("load {} parameters".format(aggregate_file))
                 new_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
@@ -557,7 +576,7 @@ class TrainMPCNormalStrategy(TrainNormalStrategy):
                 self.fed_step[self.job.get_job_id()] = fed_step
                 self.logger.info("job_{} is training, Aggregator strategy: {}".format(self.job.get_job_id(),
                                                                                       self.job.get_aggregate_strategy()))
-                self.acc, loss = self._train(self.model, self.fed_step.get(self.job.get_job_id()), self.local_epoch)
+                self.acc, loss = self._train(self.model, job_models_path, self.fed_step.get(self.job.get_job_id()), self.local_epoch)
                 self.loss_list.append(loss)
                 self.accuracy_list.append(self.acc)
                 files = self._prepare_upload_client_model_pars(self.job.get_job_id(), self.client_id,
@@ -585,7 +604,8 @@ class TrainMPCDistillationStrategy(TrainDistillationStrategy):
         while True:
             if self.fed_step.get(self.job.get_job_id()) is not None and self.fed_step.get(
                     self.job.get_job_id()) >= self.job.get_epoch():
-                final_pars_path = PathFactory.get_model_pars_path(self.job_model_path, self.client_id, self.fed_step.get(self.job.get_job_id()) + 1)
+                final_pars_path = os.path.join(self.job_model_path, "models_{}".format(self.client_id),
+                                               "tmp_parameters_{}".format(self.fed_step.get(self.job.get_job_id()) + 1))
                 if os.path.exists(final_pars_path):
                     self._save_final_parameters(self.job.get_job_id(), final_pars_path)
                     self.logger.info("job_{} completed, final accuracy: {}".format(self.job.get_job_id(), self.acc))
@@ -594,6 +614,7 @@ class TrainMPCDistillationStrategy(TrainDistillationStrategy):
                 break
             self._prepare_job_model(self.job)
             self._prepare_job_init_model_pars(self.job, self.server_url)
+            job_models_path = self._create_job_models_dir(self.client_id, self.job.get_job_id())
             # job_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
             response = requests.get("/".join([self.server_url, "otherclients", self.job.get_job_id()]))
             connected_clients_id = response.json()['data']
@@ -603,8 +624,8 @@ class TrainMPCDistillationStrategy(TrainDistillationStrategy):
                 response = requests.get("/".join(
                     [self.server_url, "otherparameters", '%s' % self.job.get_job_id(), '%s' % client_id,
                      '%s' % (self.fed_step.get(self.job.get_job_id()) + 1)]))
-
-                parameter_path = PathFactory.get_model_pars_path(self.job.get_job_id(), self.client_id, self.fed_step.get(self.job.get_job_id()) + 1)
+                parameter_path = os.path.join(job_models_path,
+                                              "tmp_parameters_{}".format(self.fed_step.get(self.job.get_job_id()) + 1))
                 if response.status_code == 202:
                     self._write_bfile_to_local(response, parameter_path)
             other_model_pars, _ = self._load_other_models_pars(self.job.get_job_id(),
@@ -619,6 +640,9 @@ class TrainMPCDistillationStrategy(TrainDistillationStrategy):
                 self.logger.info("model distillating....")
                 self.fed_step[self.job.get_job_id()] = self.fed_step.get(self.job.get_job_id()) + 1
                 self.acc, loss = self._train_with_distillation(self.model, other_model_pars, self.local_epoch,
+                                                               os.path.join(LOCAL_MODEL_BASE_PATH,
+                                                                            "models_{}".format(self.job.get_job_id()),
+                                                                            "models_{}".format(self.client_id)),
                                                                self.job.get_l2_dist())
                 self.loss_list.append(loss)
                 self.accuracy_list.append(self.acc)
@@ -629,28 +653,13 @@ class TrainMPCDistillationStrategy(TrainDistillationStrategy):
                     [self.server_url, "modelpars", "%s" % self.client_id, self.job.get_job_id(),
                      "%s" % (self.fed_step.get(self.job.get_job_id()) + 1)]), data=None, files=files)
             else:
-                if not os.path.exists(PathFactory.get_model_pars_path(self.job_model_path, self.client_id, self.fed_step.get(self.job.get_job_id()) + 1)):
-                    self._train(self.model, self.fed_step.get(self.job.get_job_id()) + 1, self.local_epoch)
+                job_model_client_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(self.job.get_job_id()),
+                                                     "models_{}".format(self.client_id))
+                if not os.path.exists(os.path.join(job_model_client_path, "tmp_parameters_{}".format(
+                        self.fed_step.get(self.job.get_job_id()) + 1))):
+                    self._train(self.model, job_model_client_path, self.fed_step.get(self.job.get_job_id()) + 1, self.local_epoch)
                     files = self._prepare_upload_client_model_pars(self.job.get_job_id(), self.client_id,
                                                                    self.fed_step.get(self.job.get_job_id()) + 1)
                     response = requests.post("/".join(
                         [self.server_url, "modelpars", "%s" % self.client_id, self.job.get_job_id(),
                          "%s" % (self.fed_step.get(self.job.get_job_id()) + 1)]), data=None, files=files)
-
-
-class TrainBlockchainNormalSelectionStrategy(TrainNormalStrategy):
-    def __init__(self):
-        pass
-
-
-
-
-
-class TrainBlockchainDistillationSelectionStrategy(TrainDistillationStrategy):
-    def __init__(self):
-        pass
-
-
-
-
-
