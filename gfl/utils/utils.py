@@ -23,6 +23,7 @@ import logging
 from json.decoder import WHITESPACE
 
 from gfl.entity.job import Job
+from gfl.utils.json_utils import JsonUtil
 from gfl.core.strategy import TrainStrategy
 
 LOG_FILE = os.path.join(os.path.abspath("."), "log.txt")
@@ -136,7 +137,36 @@ class JobDecoder(json.JSONDecoder):
                    dict['train_model_class_name'],
                    dict['aggregate_strategy'], dict['epoch'], dict['distillation_alpha'], dict['l2_dist'])
 
-#
+
+
+class RuntimeConfigUtils(object):
+
+    @staticmethod
+    def __read_json_from_runtime_config_file(runtime_config_path):
+
+        with open(runtime_config_path, "r") as f:
+            json_str = f.read()
+        return json_str
+
+    @staticmethod
+    def __write_json_to_runtime_config_file(json_str, runtime_config_path):
+
+        with open(runtime_config_path, "w") as f:
+            f.write(json_str)
+
+    @staticmethod
+    def get_obj_from_runtime_config_file(runtime_config_path, cls):
+        json_str = RuntimeConfigUtils.__read_json_from_runtime_config_file(runtime_config_path)
+        obj = JsonUtil.from_json(json_str, cls)
+        return obj
+
+    @staticmethod
+    def write_obj_to_runtime_config_file(obj, runtime_config_path):
+        json_str =JsonUtil.to_json(obj)
+        RuntimeConfigUtils.__write_json_to_runtime_config_file(json_str, runtime_config_path)
+
+
+
 # class TrainStrategyEncoder(json.JSONEncoder):
 #     def default(self, o):
 #         if isinstance(o, TrainStrategy):

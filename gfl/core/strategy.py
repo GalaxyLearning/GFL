@@ -15,12 +15,13 @@
 # federate strategies
 import torch
 from enum import Enum
-from gfl.exceptions.fl_expection import PFLException
+from gfl.core.exception import GFLException
 
 
 class WorkModeStrategy(Enum):
     WORKMODE_STANDALONE = "standalone"
     WORKMODE_CLUSTER = "cluster"
+    WORKMODE_BLOCKCHAIN = "blockchain"
 
 
 class FederateStrategy(Enum):
@@ -86,7 +87,7 @@ class TrainStrategy(Strategy):
         if optimizer in optim_strategies:
             self.optimizer = optimizer
         else:
-            raise PFLException("optimizer strategy not found")
+            raise GFLException("optimizer strategy not found")
 
     def get_optimizer(self):
         return self.optimizer
@@ -103,7 +104,7 @@ class TrainStrategy(Strategy):
         if loss_function in loss_functions:
             self.loss_function = loss_function.value
         else:
-            raise PFLException("loss strategy not found")
+            raise GFLException("loss strategy not found")
 
     def get_loss_function(self):
         return self.loss_function

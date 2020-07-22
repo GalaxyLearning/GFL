@@ -20,14 +20,13 @@ import os, json
 import inspect
 from gfl.entity import runtime_config
 from gfl.entity.job import Job
-from gfl.exceptions.fl_expection import PFLException
+from gfl.core.exception import GFLException
 from gfl.utils.utils import JobUtils, LoggerFactory
 from gfl.core.strategy import WorkModeStrategy, FederateStrategy
+from gfl.path import PathFactory
 
 lock = threading.RLock()
 
-JOB_PATH = os.path.join(os.path.abspath("."), "res", "jobs_server")
-MODEL_PATH = os.path.join(os.path.abspath("."), "res", "models")
 
 
 class JobManager(object):
@@ -36,11 +35,10 @@ class JobManager(object):
     """
 
     def __init__(self):
-        self.job_path = JOB_PATH
+        self.job_path = PathFactory.get_job_server_dir_path()
         self.logger = LoggerFactory.getLogger("JobManager", logging.INFO)
 
-    def generate_job(self, work_mode=WorkModeStrategy.WORKMODE_STANDALONE,
-                     fed_strategy=FederateStrategy.FED_AVG, epoch=0, model=None, distillation_alpha=None, l2_dist=False):
+    def generate_job(self, fed_strategy=FederateStrategy.FED_AVG, epoch=0, model=None, distillation_alpha=None, l2_dist=False):
         """
         Generate job with user-defined strategy
         :param work_mode:
@@ -53,17 +51,17 @@ class JobManager(object):
         with lock:
             # server_host, job_id, train_strategy, train_model, train_model_class_name, fed_strategy, iterations, distillation_alpha
             if fed_strategy == FederateStrategy.FED_DISTILLATION and distillation_alpha is None:
-                raise PFLException("generate_job() missing 1 positoonal argument: 'distillation_alpha'")
+                raise GFLException("generate_job() missing 1 positoonal argument: 'distillation_alpha'")
             if epoch == 0:
-                raise PFLException("generate_job() missing 1 positoonal argument: 'epoch'")
+                raise GFLException("generate_job() missing 1 positoonal argument: 'epoch'")
 
-            job = Job(None, JobUtils.generate_job_id(), inspect.getsourcefile(model),
-                      model.__name__, fed_strategy, epoch,  distillation_alpha=distillation_alpha, l2_dist=l2_dist)
+            job = Job(server_host=None, job_id=JobUtils.generate_job_id(), train_model=inspect.getsourcefile(model),
+                      train_model_class_name=model.__name__, aggregate_strategy=fed_strategy, epoch=epoch,  distillation_alpha=distillation_alpha, l2_dist=l2_dist)
 
-            if work_mode == WorkModeStrategy.WORKMODE_STANDALONE:
-                job.set_server_host("localhost:8080")
-            else:
-                job.set_server_host("")
+            # if work_mode == WorkModeStrategy.WORKMODE_STANDALONE:
+            #     job.set_server_host("localhost:8080")
+            # else:
+            #     job.set_server_host("")
 
             return job
 
@@ -76,12 +74,9 @@ class JobManager(object):
         """
         with lock:
             # create model dir of this job
-            job_model_dir = os.path.join(MODEL_PATH, "models_{}".format(job.get_job_id()))
-            if not os.path.exists(job_model_dir):
-                os.makedirs(job_model_dir)
-            torch.save(model.state_dict(), os.path.join(job_model_dir, "init_model_pars_{}".format(job.get_job_id())))
+            torch.save(model.state_dict(), PathFactory.get_init_model_pars_path(job.get_job_id()))
 
-            init_model_path = os.path.join(job_model_dir, "init_model_{}.py".format(job.get_job_id()))
+            init_model_path = PathFactory.get_job_init_model_code_path(job.get_job_id())
             with open(init_model_path, "w") as model_f:
                 with open(job.get_train_model(), "r") as model_f2:
                     for line in model_f2.readlines():
