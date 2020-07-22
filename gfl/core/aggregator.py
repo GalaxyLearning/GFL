@@ -18,11 +18,8 @@ import torch
 import time
 import requests
 import logging
-from concurrent.futures import ThreadPoolExecutor
-from gfl.core.strategy import WorkModeStrategy, FederateStrategy
-from gfl.core.job_manager import JobManager
-from gfl.utils.utils import LoggerFactory, RuntimeConfigUtils
-from gfl.entity.runtime_config import RuntimeServerConfig
+from gfl.utils.utils import LoggerFactory
+from gfl.path import PathFactory
 
 LOCAL_AGGREGATE_FILE = os.path.join("tmp_aggregate_pars", "avg_pars")
 
@@ -33,11 +30,8 @@ class Aggregator(object):
 
     def aggregate(self, job_model_pars, base_model_path, job_id, fed_step):
         avg_model_par = self._aggregate_exec(job_model_pars, base_model_path, job_id, fed_step)
-        tmp_aggregate_dir = os.path.join(base_model_path, "models_{}".format(job_id))
-        tmp_aggregate_path = os.path.join(base_model_path, "models_{}".format(job_id),
+        tmp_aggregate_path = os.path.join(PathFactory.get_job_model_path(job_id),
                                           "{}_{}".format(LOCAL_AGGREGATE_FILE, fed_step))
-        if not os.path.exists(tmp_aggregate_dir):
-            os.makedirs(tmp_aggregate_dir)
         torch.save(avg_model_par, tmp_aggregate_path)
 
 

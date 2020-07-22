@@ -23,7 +23,7 @@ from gfl.entity.job import Job
 from gfl.core.exception import GFLException
 from gfl.utils.utils import JobUtils, LoggerFactory
 from gfl.core.strategy import WorkModeStrategy, FederateStrategy
-from gfl.settings import JOB_SERVER_DIR_PATH, BASE_MODEL_DIR_PATH
+from gfl.path import PathFactory
 
 lock = threading.RLock()
 
@@ -35,7 +35,7 @@ class JobManager(object):
     """
 
     def __init__(self):
-        self.job_path = JOB_SERVER_DIR_PATH
+        self.job_path = PathFactory.get_job_server_dir_path()
         self.logger = LoggerFactory.getLogger("JobManager", logging.INFO)
 
     def generate_job(self, fed_strategy=FederateStrategy.FED_AVG, epoch=0, model=None, distillation_alpha=None, l2_dist=False):
@@ -74,12 +74,9 @@ class JobManager(object):
         """
         with lock:
             # create model dir of this job
-            job_model_dir = os.path.join(BASE_MODEL_DIR_PATH, "models_{}".format(job.get_job_id()))
-            if not os.path.exists(job_model_dir):
-                os.makedirs(job_model_dir)
-            torch.save(model.state_dict(), os.path.join(job_model_dir, "init_model_pars_{}".format(job.get_job_id())))
+            torch.save(model.state_dict(), PathFactory.get_init_model_pars_path(job.get_job_id()))
 
-            init_model_path = os.path.join(job_model_dir, "init_model_{}.py".format(job.get_job_id()))
+            init_model_path = PathFactory.get_job_init_model_code_path(job.get_job_id())
             with open(init_model_path, "w") as model_f:
                 with open(job.get_train_model(), "r") as model_f2:
                     for line in model_f2.readlines():
