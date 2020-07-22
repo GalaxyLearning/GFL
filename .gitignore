@@ -133,3 +133,6 @@ dmypy.json
 
 # Project
 res/
+data/
+gfl_test/res
+gfl_test/data
