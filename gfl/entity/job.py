@@ -12,31 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from gfl.entity.base import BaseEntity
 
-class Job(BaseEntity):
+class Job(object):
 
-    # def __init__(self, server_host, job_id, train_model, train_model_class_name, aggregate_strategy, epoch,
-    #              distillation_alpha=None, l2_dist=False):
-    server_host = (str, )
-    job_id = (str, )
-    train_model = (str, )
-    train_model_class_name = (str, )
-    aggregate_strategy = (str, )
-    epoch = (int, )
-    distillation_alpha = (float, )
-    l2_dist = (bool, )
-
-    def __init__(self, **kwargs):
-        super(Job, self).__init__(**kwargs)
-        # self.server_host = server_host
-        # self.job_id = job_id
-        # self.epoch = epoch
-        # self.train_model = train_model
-        # self.train_model_class_name = train_model_class_name
-        # self.aggregate_strategy = aggregate_strategy
-        # self.alpha = distillation_alpha
-        # self.l2_dist = l2_dist
+    def __init__(self, server_host, job_id, train_model, train_model_class_name, aggregate_strategy, epoch,
+                 distillation_alpha=None, l2_dist=False):
+        self.server_host = server_host
+        self.job_id = job_id
+        self.epoch = epoch
+        self.train_model = train_model
+        self.train_model_class_name = train_model_class_name
+        self.aggregate_strategy = aggregate_strategy
+        self.alpha = distillation_alpha
+        self.l2_dist = l2_dist
 
     def set_server_host(self, server_host):
         self.server_host = server_host

@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 class Model(object):
 
-
-    def __init__(self, **kwargs):
-        super(Model, self).__init__(**kwargs)
+    def __init__(self):
+        pass
 
     def set_model(self, model):
         self.model = model

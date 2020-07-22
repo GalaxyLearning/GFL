@@ -13,25 +13,13 @@
 # limitations under the License.
 
 
-from gfl.utils.json_utils import JsonUtil
 
 
-class BaseEntity(object):
+class PFLException(Exception):
 
-    def __init__(self, **kwargs):
-        super(BaseEntity, self).__init__()
-
-        cls = type(self)
-
-        for k in cls.__dict__.keys():
-            setattr(self, k, None)
-
-        for k, v in kwargs.items():
-            if k in cls.__dict__:
-                setattr(self, k, v)
-
-    def __repr__(self):
-        return JsonUtil.to_json(self)
+    def __init__(self, value):
+        self.value = value
 
     def __str__(self):
-        return self.__repr__()
+        return repr(self.value)
+
