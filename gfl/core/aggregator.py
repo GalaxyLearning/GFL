@@ -44,6 +44,35 @@ class Aggregator(object):
     def _aggregate_exec(self, job_model_pars, base_model_path, job_id, fed_step):
         pass
 
+    def load_model_pars(self, job_model_pars_path, fed_step):
+        """
+
+        :param job_model_pars_path:
+        :param fed_step:
+        :return:
+        """
+        fed_step = 0 if fed_step is None else fed_step
+        job_model_pars = []
+        last_model_par_file_num = 0
+        # print("job_model_pars_path: ", job_model_pars_path)
+        for f in os.listdir(job_model_pars_path):
+            if f.find("models_") != -1:
+                one_model_par_path = os.path.join(job_model_pars_path, f)
+                # print("one_model_par_path: ", one_model_par_path)
+                one_model_par_files = os.listdir(one_model_par_path)
+                if one_model_par_files and len(one_model_par_files) != 0:
+                    last_model_par_file_num = self._find_last_model_file_num(one_model_par_files)
+                    if last_model_par_file_num > fed_step:
+                        model_par = torch.load(os.path.join(one_model_par_path, one_model_par_files[-1]))
+                        job_model_pars.append(model_par)
+                    else:
+                        return None, 0
+                else:
+                    # wait for other clients finish training
+                    return None, 0
+
+        return job_model_pars, last_model_par_file_num
+
 
 class FedAvgAggregator(Aggregator):
     """
