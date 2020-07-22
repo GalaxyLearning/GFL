@@ -24,7 +24,7 @@ from gfl.core.job_manager import JobManager
 from gfl.utils.utils import LoggerFactory, RuntimeConfigUtils
 from gfl.entity.runtime_config import RuntimeServerConfig
 from gfl.core.aggregator import FedAvgAggregator
-from gfl.settings import RUNTIME_CONFIG_SERVER_PATH
+from gfl.path import PathFactory
 
 
 class AggregatorController(object):
@@ -204,7 +204,7 @@ class ClusterAggregatorController(AggregatorController):
                                                                            "tmp_aggregate_pars"),
                                             self.fed_step[job.get_job_id()])
 
-            runtime_server_config = RuntimeConfigUtils.get_obj_from_runtime_config_file(RUNTIME_CONFIG_SERVER_PATH,
+            runtime_server_config = RuntimeConfigUtils.get_obj_from_runtime_config_file(PathFactory.get_runtime_config_server_path(),
                                                                                         RuntimeServerConfig)
             self._broadcast(job.get_job_id(), runtime_server_config.CONNECTED_TRAINER_LIST, self.base_model_path)
 

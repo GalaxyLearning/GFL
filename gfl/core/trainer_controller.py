@@ -21,9 +21,9 @@ from gfl.core import communicate_client
 from gfl.core.exception import GFLException
 from gfl.utils.json_utils import JsonUtil
 from gfl.entity.runtime_config import RuntimeClientConfig
-from gfl.utils.utils import JobUtils, LoggerFactory, ModelUtils, RuntimeConfigUtils
+from gfl.utils.utils import JobUtils, LoggerFactory, ModelUtils
 from gfl.core.strategy import WorkModeStrategy, FederateStrategy
-from gfl.settings import JOB_CLIENT_DIR_PATH, RUNTIME_CONFIG_CLIENT_PATH
+from gfl.path import PathFactory
 from gfl.core.trainer import TrainStandloneNormalStrategy, TrainMPCNormalStrategy, \
     TrainStandloneDistillationStrategy, TrainMPCDistillationStrategy, TrainBlockchainNormalSelectionStrategy, TrainBlockchainDistillationSelectionStrategy
 
@@ -32,9 +32,9 @@ from gfl.core.trainer import TrainStandloneNormalStrategy, TrainMPCNormalStrateg
 class TrainerControllerBase(object):
     def __init__(self):
         runtime_server_config_json = JsonUtil.to_json(RuntimeClientConfig())
-        if not os.path.exists(RUNTIME_CONFIG_CLIENT_PATH):
-            with open(RUNTIME_CONFIG_CLIENT_PATH, "w") as f:
-                f.write(runtime_server_config_json)
+
+        with open(PathFactory.get_runtime_config_client_path(), "w") as f:
+            f.write(runtime_server_config_json)
 
 
 class TrainerController(TrainerControllerBase):
@@ -52,7 +52,7 @@ class TrainerController(TrainerControllerBase):
         self.local_epoch = local_epoch
         self.concurrent_num = concurrent_num
         self.trainer_executor_pool = ThreadPoolExecutor(self.concurrent_num)
-        self.job_path = JOB_CLIENT_DIR_PATH
+        self.job_path = PathFactory.get_job_client_dir_path()
         self.models = models
         self.fed_step = {}
         self.job_train_strategy = {}

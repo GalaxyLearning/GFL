@@ -23,7 +23,7 @@ from gfl.utils.utils import LoggerFactory, CyclicTimer
 from gfl.utils.json_utils import JsonUtil
 from gfl.core.strategy import WorkModeStrategy, FederateStrategy
 from gfl.entity.runtime_config import RuntimeServerConfig
-from gfl.path import get_runtime_config_server_path, get_job_server_dir_path, get_base_model_dir_path
+from gfl.path import PathFactory
 
 
 
@@ -33,8 +33,8 @@ class FLServer(object):
         super(FLServer, self).__init__()
         self.logger = LoggerFactory.getLogger("FlServer", logging.INFO)
         runtime_server_config_json = JsonUtil.to_json(RuntimeServerConfig())
-        if not os.path.exists(get_runtime_config_server_path()):
-            with open(get_job_server_dir_path(), "w") as f:
+        if not os.path.exists(PathFactory.get_runtime_config_server_path()):
+            with open(PathFactory.get_job_server_dir_path(), "w") as f:
                 f.write(runtime_server_config_json)
 
     def start(self):
@@ -48,7 +48,7 @@ class FLStandaloneServer(FLServer):
     def __init__(self):
         super(FLStandaloneServer, self).__init__()
         # self.executor_pool = ThreadPoolExecutor(5)
-        self.aggregator = StandaloneAggregatorController(WorkModeStrategy.WORKMODE_STANDALONE, get_job_server_dir_path(), get_base_model_dir_path())
+        self.aggregator = StandaloneAggregatorController(WorkModeStrategy.WORKMODE_STANDALONE, PathFactory.get_job_server_dir_path(), PathFactory.get_base_model_dir_path())
         # if federate_strategy == FederateStrategy.FED_AVG:
         #     self.aggregator = FedAvgAggregator(WorkModeStrategy.WORKMODE_STANDALONE, JOB_PATH, BASE_MODEL_PATH)
         # else:
@@ -67,7 +67,7 @@ class FLClusterServer(FLServer):
     def __init__(self, ip, port, api_version):
         super(FLClusterServer, self).__init__()
         self.executor_pool = ThreadPoolExecutor(5)
-        self.aggregator = ClusterAggregatorController(WorkModeStrategy.WORKMODE_CLUSTER, get_job_server_dir_path(), get_base_model_dir_path())
+        self.aggregator = ClusterAggregatorController(WorkModeStrategy.WORKMODE_CLUSTER, PathFactory.get_job_server_dir_path(), PathFactory.get_base_model_dir_path())
 
         self.ip = ip
         self.port = port
