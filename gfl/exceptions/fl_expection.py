@@ -15,7 +15,7 @@
 
 
 
-class PFLException(Exception):
+class GFLException(Exception):
 
     def __init__(self, value):
         self.value = value

@@ -18,7 +18,7 @@ import logging
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from gfl.core import communicate_client
-from gfl.exceptions.fl_expection import PFLException
+from gfl.exceptions.fl_expection import GFLException
 from gfl.utils.utils import JobUtils, LoggerFactory, ModelUtils
 from gfl.core.strategy import WorkModeStrategy, FederateStrategy
 from gfl.core.trainer import TrainStandloneNormalStrategy, TrainMPCNormalStrategy, \
@@ -63,7 +63,7 @@ class TrainerController(object):
                                                   self.client_port)
                 self._trainer_mpc_exec()
             else:
-                PFLException("connect to parameter server fail, please check your internet")
+                GFLException("connect to parameter server fail, please check your internet")
 
     def _trainer_standalone_exec(self):
         t = threading.Timer(5, self._trainer_standalone_exec_impl)
@@ -76,20 +76,20 @@ class TrainerController(object):
         for job in job_list:
             if self.job_train_strategy.get(job.get_job_id()) is None:
                 # print(job.get_aggregate_strategy())
-                pfl_model = ModelUtils.get_model_by_job_id(self.models, job.get_job_id())
+                gfl_model = ModelUtils.get_model_by_job_id(self.models, job.get_job_id())
                 if job.get_aggregate_strategy() == FederateStrategy.FED_AVG.value:
                     self.job_train_strategy[job.get_job_id()] = TrainStandloneNormalStrategy(job, self.data,
                                                                                              self.fed_step,
                                                                                              self.client_id,
                                                                                              self.local_epoch,
-                                                                                             pfl_model,
+                                                                                             gfl_model,
                                                                                              self.curve)
                 else:
                     self.job_train_strategy[job.get_job_id()] = TrainStandloneDistillationStrategy(job, self.data,
                                                                                                    self.fed_step,
                                                                                                    self.client_id,
                                                                                                    self.local_epoch,
-                                                                                                   pfl_model,
+                                                                                                   gfl_model,
                                                                                                    self.curve)
                 self.run(self.job_train_strategy.get(job.get_job_id()))
 
@@ -103,12 +103,12 @@ class TrainerController(object):
         job_list = JobUtils.list_all_jobs(self.job_path)
         for job in job_list:
             if self.job_train_strategy.get(job.get_job_id()) is None:
-                pfl_model = ModelUtils.get_model_by_job_id(self.models, job.get_job_id())
+                gfl_model = ModelUtils.get_model_by_job_id(self.models, job.get_job_id())
                 if job.get_aggregate_strategy() == FederateStrategy.FED_AVG.value:
                     self.job_train_strategy[job.get_job_id()] = self.job_train_strategy[
                         job.get_job_id()] = TrainMPCNormalStrategy(job, self.data, self.fed_step, self.client_ip,
                                                                    self.client_port, self.server_url, self.client_id, self.local_epoch,
-                                                                   pfl_model, self.curve)
+                                                                   gfl_model, self.curve)
                 else:
                     self.job_train_strategy[job.get_job_id()] = TrainMPCDistillationStrategy(job, self.data,
                                                                                              self.fed_step,
@@ -116,7 +116,7 @@ class TrainerController(object):
                                                                                              self.client_port,
                                                                                              self.server_url,
                                                                                              self.client_id, self.local_epoch,
-                                                                                             pfl_model,
+                                                                                             gfl_model,
                                                                                              self.curve)
                 self.run(self.job_train_strategy.get(job.get_job_id()))
 

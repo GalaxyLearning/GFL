@@ -20,7 +20,7 @@ import os, json
 import inspect
 from gfl.entity import runtime_config
 from gfl.entity.job import Job
-from gfl.exceptions.fl_expection import PFLException
+from gfl.exceptions.fl_expection import GFLException
 from gfl.utils.utils import JobUtils, LoggerFactory
 from gfl.core.strategy import WorkModeStrategy, FederateStrategy
 
@@ -53,9 +53,9 @@ class JobManager(object):
         with lock:
             # server_host, job_id, train_strategy, train_model, train_model_class_name, fed_strategy, iterations, distillation_alpha
             if fed_strategy == FederateStrategy.FED_DISTILLATION and distillation_alpha is None:
-                raise PFLException("generate_job() missing 1 positoonal argument: 'distillation_alpha'")
+                raise GFLException("generate_job() missing 1 positoonal argument: 'distillation_alpha'")
             if epoch == 0:
-                raise PFLException("generate_job() missing 1 positoonal argument: 'epoch'")
+                raise GFLException("generate_job() missing 1 positoonal argument: 'epoch'")
 
             job = Job(None, JobUtils.generate_job_id(), inspect.getsourcefile(model),
                       model.__name__, fed_strategy, epoch,  distillation_alpha=distillation_alpha, l2_dist=l2_dist)

@@ -18,7 +18,7 @@ if __name__ == "__main__":
     ]))
 
     client = FLClient()
-    gfl_models = client.get_remote_pfl_models(SERVER_URL)
+    gfl_models = client.get_remote_gfl_models(SERVER_URL)
 
     for gfl_model in gfl_models:
         optimizer = torch.optim.SGD(gfl_model.get_model().parameters(), lr=0.01, momentum=0.5)

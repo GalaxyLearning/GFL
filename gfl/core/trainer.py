@@ -23,7 +23,7 @@ import importlib
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 from gfl.entity import runtime_config
-from gfl.exceptions.fl_expection import PFLException
+from gfl.exceptions.fl_expection import GFLException
 from gfl.core.strategy import OptimizerStrategy, LossStrategy, SchedulerStrategy
 from gfl.utils.utils import LoggerFactory
 
@@ -250,7 +250,7 @@ class TrainNormalStrategy(TrainStrategy):
         optimizer_class = optimizer.__class__
         params = state_dict['param_groups'][0]
         if not isinstance(optimizer, torch.optim.Optimizer):
-            raise PFLException("optimizer get wrong type value")
+            raise GFLException("optimizer get wrong type value")
 
         if isinstance(optimizer, torch.optim.SGD):
             return optimizer_class(model.parameters(), lr=params['lr'], momentum=params['momentum'],
@@ -266,7 +266,7 @@ class TrainNormalStrategy(TrainStrategy):
         for scheduler_item in SchedulerStrategy.__members__.items():
             scheduler_names.append(scheduler_item.value)
         if scheduler.__class__.__name__ not in scheduler_names:
-            raise PFLException("optimizer get wrong type value")
+            raise GFLException("optimizer get wrong type value")
         optimizer = scheduler.__getattribute__("optimizer")
         params = scheduler.state_dict()
         new_optimizer = self._generate_new_optimizer(model, optimizer)

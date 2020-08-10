@@ -28,7 +28,7 @@ class FLClient(object):
         self.base_model_path = BASE_MODEL_PATH
 
 
-    def get_remote_pfl_models(self, server_url=None):
+    def get_remote_gfl_models(self, server_url=None):
         if server_url is None:
             return self._get_models_from_local()
         else:
@@ -42,10 +42,10 @@ class FLClient(object):
 
         for job in job_list:
             model = self._get_model_from_job(job)
-            pfl_model = Model()
-            pfl_model.set_model(model)
-            pfl_model.set_job_id(job.get_job_id())
-            model_list.append(pfl_model)
+            gfl_model = Model()
+            gfl_model.set_model(model)
+            gfl_model.set_job_id(job.get_job_id())
+            model_list.append(gfl_model)
         return model_list
 
     def _get_models_from_remote(self, server_url):
@@ -54,10 +54,10 @@ class FLClient(object):
         job_list = JobUtils.list_all_jobs(self.job_path)
         for job in job_list:
             model = self._get_model_from_job(job)
-            pfl_model = Model()
-            pfl_model.set_model(model)
-            pfl_model.set_job_id(job.get_job_id())
-            model_list.append(pfl_model)
+            gfl_model = Model()
+            gfl_model.set_model(model)
+            gfl_model.set_job_id(job.get_job_id())
+            model_list.append(gfl_model)
         return model_list
 
     def _get_model_from_job(self, job):
