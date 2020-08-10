@@ -23,7 +23,7 @@ from setuptools import setup
 
 setup(
     name="gfl",
-    version="0.1.0",
+    version="0.1.1",
     author="Galaxy Learning Author",
     author_email="yifan_hu@zju.edu.cn",
     description="A Galaxy Federated Learning Framework",
