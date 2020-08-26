@@ -150,7 +150,7 @@ class TrainNormalStrategy(TrainStrategy):
         model = model.to(device)
         model.train()
         if train_model.get_train_strategy().set_scheduler() is not None:
-            scheduler = train_model.get_train_strategy().set_scheduler()
+            scheduler = train_model.get_train_strategy().get_scheduler()
         while step < local_epoch:
             dataloader = torch.utils.data.DataLoader(self.data,
                                                      batch_size=train_model.get_train_strategy().get_batch_size(),
@@ -395,7 +395,7 @@ class TrainDistillationStrategy(TrainNormalStrategy):
         model, other_model = model.to(device), copy.deepcopy(model).to(device)
         model.train()
         if train_model.get_train_strategy().set_scheduler() is not None:
-            scheduler = train_model.get_train_strategy().set_scheduler()
+            scheduler = train_model.get_train_strategy().get_scheduler()
         while step < local_epoch:
             dataloader = torch.utils.data.DataLoader(self.data,
                                                      batch_size=train_model.get_train_strategy().get_batch_size(),
