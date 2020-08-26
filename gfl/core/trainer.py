@@ -144,9 +144,13 @@ class TrainNormalStrategy(TrainStrategy):
         # TODO: transfer training code to c++ and invoked by python using pybind11
 
         step = 0
+        scheduler = None
         model = train_model.get_model()
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model = model.to(device)
+        model.train()
+        if train_model.get_train_strategy().set_scheduler() is not None:
+            scheduler = train_model.get_train_strategy().set_scheduler()
         while step < local_epoch:
             dataloader = torch.utils.data.DataLoader(self.data,
                                                      batch_size=train_model.get_train_strategy().get_batch_size(),
@@ -154,13 +158,15 @@ class TrainNormalStrategy(TrainStrategy):
                                                      num_workers=1,
                                                      pin_memory=True)
 
-
+            if scheduler is not None:
+                scheduler.step()
             acc = 0
 
             if train_model.get_train_strategy().get_optimizer() is not None:
                 optimizer = self._generate_new_optimizer(model, train_model.get_train_strategy().get_optimizer())
             else:
                 optimizer = self._generate_new_scheduler(model, train_model.get_train_strategy().get_scheduler())
+
             for idx, (batch_data, batch_target) in enumerate(dataloader):
                 batch_data, batch_target = batch_data.to(device), batch_target.to(device)
                 pred = model(batch_data)
@@ -383,15 +389,22 @@ class TrainDistillationStrategy(TrainNormalStrategy):
         """
         # TODO: transfer training code to c++ and invoked by python using pybind11
         step = 0
+        scheduler = None
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model = train_model.get_model()
         model, other_model = model.to(device), copy.deepcopy(model).to(device)
+        model.train()
+        if train_model.get_train_strategy().set_scheduler() is not None:
+            scheduler = train_model.get_train_strategy().set_scheduler()
         while step < local_epoch:
             dataloader = torch.utils.data.DataLoader(self.data,
                                                      batch_size=train_model.get_train_strategy().get_batch_size(),
                                                      shuffle=True,
                                                      num_workers=1,
                                                      pin_memory=True)
+
+            if scheduler is not None:
+                scheduler.step()
 
             optimizer = self._generate_new_optimizer(model, train_model.get_train_strategy().get_optimizer())
             acc = 0
