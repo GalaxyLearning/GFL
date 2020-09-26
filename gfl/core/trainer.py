@@ -175,15 +175,18 @@ class TrainNormalStrategy(TrainStrategy):
                 pred = model(batch_data)
                 log_pred = torch.log(F.softmax(pred, dim=1))
                 loss = self._compute_loss(train_model.get_train_strategy().get_loss_function(), log_pred, batch_target)
-                acc += torch.eq(pred.argmax(dim=1), batch_target).sum().float().item()
+                # acc += torch.eq(pred.argmax(dim=1), batch_target).sum().float().item()
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
 
-                if idx % 200 == 0:
-                    self.logger.info("train_loss: {}".format(loss.item()))
+                if idx % 100 == 0:
+                    accuracy_function = train_model.get_train_strategy().get_accuracy_function()
+                    if accuracy_function is not None and isfunction(accuracy_function):
+                        accuracy = accuracy_function(pred, batch_target)
+                    self.logger.info("train_loss: {}, accuracy: {}".format(loss.item(), accuracy))
             step += 1
-            accuracy = acc / len(dataloader.dataset)
+            # accuracy = acc / len(dataloader.dataset)
         torch.save(model.state_dict(),
                        os.path.join(job_models_path, "tmp_parameters_{}".format(fed_step)))
 

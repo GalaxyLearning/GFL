@@ -62,12 +62,13 @@ class Strategy(object):
 class TrainStrategy(Strategy):
 
     def __init__(self, optimizer=None, scheduler=None, loss_function=LossStrategy.NLL_LOSS,
-                 batch_size=0):
+                 accuracy_function=None, batch_size=0):
         super(TrainStrategy, self).__init__()
         self.optimizer = optimizer
         self.loss_function = loss_function
         self.batch_size = batch_size
         self.scheduler = scheduler
+        self.accuracy_function = accuracy_function
 
     def get_loss_functions(self):
         return LossStrategy.__members__.items()
@@ -97,6 +98,11 @@ class TrainStrategy(Strategy):
     def get_scheduler(self):
         return self.scheduler
 
+    def get_accuracy_function(self):
+        return self.accuracy_function
+
+    def set_accuracy_fucntion(self, accuracy_fucntion):
+        self.accuracy_function = accuracy_fucntion
 
     def set_loss_function(self, loss_function):
         loss_functions = self.get_loss_functions()
