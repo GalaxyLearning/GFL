@@ -22,6 +22,7 @@ import requests
 import importlib
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
+import numpy as np
 from inspect import isfunction
 from gfl.entity import runtime_config
 from gfl.exceptions.fl_expection import GFLException
@@ -173,8 +174,8 @@ class TrainNormalStrategy(TrainStrategy):
             for idx, (batch_data, batch_target) in enumerate(dataloader):
                 batch_data, batch_target = batch_data.to(device), batch_target.to(device)
                 pred = model(batch_data)
-                log_pred = torch.log(F.softmax(pred, dim=1))
-                loss = self._compute_loss(train_model.get_train_strategy().get_loss_function(), log_pred, batch_target)
+                # log_pred = torch.log(F.softmax(pred, dim=1))
+                loss = self._compute_loss(train_model.get_train_strategy().get_loss_function(), pred, batch_target)
                 # acc += torch.eq(pred.argmax(dim=1), batch_target).sum().float().item()
                 optimizer.zero_grad()
                 loss.backward()
