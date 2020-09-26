@@ -149,7 +149,7 @@ class TrainNormalStrategy(TrainStrategy):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model = model.to(device)
         model.train()
-        if train_model.get_train_strategy().set_scheduler() is not None:
+        if train_model.get_train_strategy().get_scheduler() is not None:
             scheduler = train_model.get_train_strategy().get_scheduler()
         while step < local_epoch:
             dataloader = torch.utils.data.DataLoader(self.data,
@@ -394,7 +394,7 @@ class TrainDistillationStrategy(TrainNormalStrategy):
         model = train_model.get_model()
         model, other_model = model.to(device), copy.deepcopy(model).to(device)
         model.train()
-        if train_model.get_train_strategy().set_scheduler() is not None:
+        if train_model.get_train_strategy().get_scheduler() is not None:
             scheduler = train_model.get_train_strategy().get_scheduler()
         while step < local_epoch:
             dataloader = torch.utils.data.DataLoader(self.data,
