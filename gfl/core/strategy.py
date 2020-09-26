@@ -16,7 +16,7 @@
 import torch
 from enum import Enum
 from gfl.exceptions.fl_expection import GFLException
-
+from inspect import isfunction
 
 class WorkModeStrategy(Enum):
     WORKMODE_STANDALONE = "standalone"
@@ -102,8 +102,10 @@ class TrainStrategy(Strategy):
         loss_functions = self.get_loss_functions()
         if loss_function in loss_functions:
             self.loss_function = loss_function.value
+        elif isfunction(loss_function):
+            self.loss_function = loss_function
         else:
-            raise GFLException("loss strategy not found")
+            raise GFLException("loss strategy not found or loss function is not a function")
 
     def get_loss_function(self):
         return self.loss_function

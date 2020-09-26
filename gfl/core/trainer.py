@@ -22,6 +22,7 @@ import requests
 import importlib
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
+from inspect import isfunction
 from gfl.entity import runtime_config
 from gfl.exceptions.fl_expection import GFLException
 from gfl.core.strategy import OptimizerStrategy, LossStrategy, SchedulerStrategy
@@ -60,6 +61,8 @@ class TrainStrategy(object):
             loss = F.nll_loss(output, label)
         elif loss_function == LossStrategy.KLDIV_LOSS:
             loss = F.kl_div(torch.log(output), label, reduction='batchmean')
+        elif isfunction(loss_function):
+            loss = loss_function(output, label)
         return loss
 
     def _compute_l2_dist(self, output, label):
