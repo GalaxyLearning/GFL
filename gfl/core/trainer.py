@@ -152,6 +152,11 @@ class TrainNormalStrategy(TrainStrategy):
         model = train_model.get_model()
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model = model.to(device)
+        test_function = train_model.get_train_strategy().get_test_function()
+        if test_function is not None:
+            model.eval()
+            test_accuracy = test_function(model)
+            self.logger.info("test_accuracy: {}".format(test_accuracy))
         model.train()
         if train_model.get_train_strategy().get_scheduler() is not None:
             scheduler = train_model.get_train_strategy().get_scheduler()
@@ -188,6 +193,8 @@ class TrainNormalStrategy(TrainStrategy):
                     self.logger.info("train_loss: {}, accuracy: {}".format(loss.item(), accuracy))
             step += 1
             # accuracy = acc / len(dataloader.dataset)
+
+
         torch.save(model.state_dict(),
                        os.path.join(job_models_path, "tmp_parameters_{}".format(fed_step)))
 
