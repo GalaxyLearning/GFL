@@ -1,3 +1,5 @@
+
+
 # GFL Framework
 
 GFL is a federated learning framework based on pytorch and it provides different federated learning algorithm.
@@ -6,6 +8,8 @@ GLS is a federated learning system based on blockchain and GFL.
 At present, the GFL part is open-source first, and the blockchain part will be open-source soon. 
 In addition to the traditional federate learning algorithm, GFL also provides a new federated learning algorithm 
 based on model distillation. Developers can choose different federated learning algorithm to train their model.
+
+> 对`GFL`感兴趣或者对`联邦学习`感兴趣的可以扫描末尾的二维码加入GFL交流群进行交流哦~
 
 
 ## GFL Base Framework Design
@@ -284,3 +288,5 @@ if __name__ == "__main__":
 
 ```
 
+# QRCode
+![imgaes](resource//pictures//GFL_QRCode.jpeg)
