@@ -155,8 +155,8 @@ class TrainNormalStrategy(TrainStrategy):
         test_function = train_model.get_train_strategy().get_test_function()
         if test_function is not None:
             model.eval()
-            test_accuracy = test_function(model)
-            self.logger.info("test_accuracy: {}".format(test_accuracy))
+            test_accuracy, test_loss = test_function(model)
+            self.logger.info("test_accuracy: {}, test_loss: {}".format(test_accuracy, test_loss))
         model.train()
         if train_model.get_train_strategy().get_scheduler() is not None:
             scheduler = train_model.get_train_strategy().get_scheduler()
