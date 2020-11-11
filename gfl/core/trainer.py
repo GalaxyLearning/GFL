@@ -151,12 +151,11 @@ class TrainNormalStrategy(TrainStrategy):
         scheduler = None
         model = train_model.get_model()
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model = model.to(device)
         test_function = train_model.get_train_strategy().get_test_function()
         if test_function is not None:
-            model.eval()
             test_accuracy, test_loss = test_function(model)
             self.logger.info("test_accuracy: {}, test_loss: {}".format(test_accuracy, test_loss))
+        model = model.to(device)
         model.train()
         if train_model.get_train_strategy().get_scheduler() is not None:
             scheduler = train_model.get_train_strategy().get_scheduler()
