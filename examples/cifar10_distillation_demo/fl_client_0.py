@@ -25,5 +25,5 @@ if __name__ == "__main__":
         gfl_model.set_train_strategy(train_strategy)
 
     TrainerController(work_mode=WorkModeStrategy.WORKMODE_STANDALONE, models=gfl_models, data=dataset,
-                      test_dataset=test_dataset, client_id=CLIENT_ID,
+                      test_data=test_dataset, client_id=CLIENT_ID,
                       curve=False, local_epoch=3, concurrent_num=3).start()
