@@ -445,8 +445,8 @@ class TrainDistillationStrategy(TrainNormalStrategy):
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-                # if idx % 200 == 0:
-                #     # print("distillation_loss: ", loss.item())
+                if idx % 200 == 0:
+                    print("distillation_loss: ", loss.item())
                 #     self.logger.info("distillation_loss: {}".format(loss.item()))
             step += 1
             accuracy = acc / len(dataloader.dataset)
@@ -588,6 +588,7 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
                                                  num_workers=1,
                                                  pin_memory=True)
         num_batch = 0
+        last_global_model = last_global_model.to(device)
         loss_kl_list = [0 for _ in range(len(distillation_model_list))]
         for idx, (batch_data, batch_target) in enumerate(dataloader):
             batch_data = batch_data.to(device)
@@ -618,6 +619,7 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
         model.load_state_dict(global_model_pars)
         model.eval()
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model = model.to(device)
         dataloader = torch.utils.data.DataLoader(self.test_data, batch_size=self.train_model.get_train_strategy().get_batch_size(), shuffle=True)
         with torch.no_grad():
             acc = 0
