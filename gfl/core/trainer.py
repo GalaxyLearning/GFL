@@ -615,6 +615,7 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
     def _test(self, global_model_pars):
         model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
         model.load_state_dict(global_model_pars)
+        model.eval()
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         dataloader = torch.utils.data.DataLoader(self.test_data,batch_size=self.train_model.get_train_strategy().get_batch_size(), shuffle=True)
         with torch.no_grad():
