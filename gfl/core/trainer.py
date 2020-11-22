@@ -133,6 +133,11 @@ class TrainNormalStrategy(TrainStrategy):
         self.loss_list = []
         self.model = model
         self.curve = curve
+        self.train_dataloader = torch.utils.data.DataLoader(self.data,
+                                                            batch_size=self.model.get_train_strategy().get_batch_size(),
+                                                            shuffle=True,
+                                                            num_workers=1,
+                                                            pin_memory=True)
 
     def train(self):
         pass
@@ -161,11 +166,6 @@ class TrainNormalStrategy(TrainStrategy):
         if train_model.get_train_strategy().get_scheduler() is not None:
             scheduler = train_model.get_train_strategy().get_scheduler()
         while step < local_epoch:
-            dataloader = torch.utils.data.DataLoader(self.data,
-                                                     batch_size=train_model.get_train_strategy().get_batch_size(),
-                                                     shuffle=True,
-                                                     num_workers=1,
-                                                     pin_memory=True)
 
             if scheduler is not None:
                 scheduler.step()
@@ -176,7 +176,7 @@ class TrainNormalStrategy(TrainStrategy):
             else:
                 optimizer = self._generate_new_scheduler(model, train_model.get_train_strategy().get_scheduler())
 
-            for idx, (batch_data, batch_target) in enumerate(dataloader):
+            for idx, (batch_data, batch_target) in enumerate(self.train_dataloader):
                 batch_data, batch_target = batch_data.to(device), batch_target.to(device)
                 pred = model(batch_data)
                 log_pred = torch.log(F.softmax(pred, dim=1))
@@ -193,7 +193,7 @@ class TrainNormalStrategy(TrainStrategy):
                     #     accuracy = accuracy_function(pred, batch_target)
                     self.logger.info("train_loss: {}, train_acc: {}".format(loss.item(), float(batch_acc)/len(batch_target)))
             step += 1
-            accuracy = acc / len(dataloader.dataset)
+            accuracy = acc / len(self.train_dataloader.dataset)
 
 
         torch.save(model.state_dict(),
@@ -413,18 +413,13 @@ class TrainDistillationStrategy(TrainNormalStrategy):
         if train_model.get_train_strategy().get_scheduler() is not None:
             scheduler = train_model.get_train_strategy().get_scheduler()
         while step < local_epoch:
-            dataloader = torch.utils.data.DataLoader(self.data,
-                                                     batch_size=train_model.get_train_strategy().get_batch_size(),
-                                                     shuffle=True,
-                                                     num_workers=1,
-                                                     pin_memory=True)
 
             if scheduler is not None:
                 scheduler.step()
 
             optimizer = self._generate_new_optimizer(model, train_model.get_train_strategy().get_optimizer())
             acc = 0
-            for idx, (batch_data, batch_target) in enumerate(dataloader):
+            for idx, (batch_data, batch_target) in enumerate(self.train_dataloader):
                 batch_data = batch_data.to(device)
                 batch_target = batch_target.to(device)
                 kl_pred = model(batch_data)
@@ -449,7 +444,7 @@ class TrainDistillationStrategy(TrainNormalStrategy):
                     print("distillation_loss: ", loss.item())
                 #     self.logger.info("distillation_loss: {}".format(loss.item()))
             step += 1
-            accuracy = acc / len(dataloader.dataset)
+            accuracy = acc / len(self.train_dataloader.dataset)
 
         torch.save(model.state_dict(),
                        os.path.join(distillation_model_path, "tmp_parameters_{}".format(self.fed_step[self.job.get_job_id()] + 1)))
@@ -515,6 +510,8 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
         self.train_model = model
         self.logger = LoggerFactory.getLogger("TrainStandloneDistillationStrategy", logging.INFO)
 
+        self.test_dataloader = torch.utils.data.DataLoader(self.test_data, batch_size=self.train_model.get_train_strategy().get_batch_size(), shuffle=True)
+
     def _create_dislillation_model_pars_path(self, client_id, job_id):
         distillation_model_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id), "models_{}".format(client_id),
                                        "distillation_model_pars")
@@ -569,7 +566,7 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
         distillation_model_pars = []
         job_model_dir = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id))
         for model_dir in os.listdir(job_model_dir):
-            if os.path.isdir(model_dir) and int(model_dir.split("_")[-1]) < connected_clients_num:
+            if os.path.isdir(os.path.join(job_model_dir, model_dir)) and len(str(model_dir.split("_")[-1]))==1 and int(model_dir.split("_")[-1]) < connected_clients_num:
                 distillation_dir = os.path.join(job_model_dir, model_dir, "distillation_model_pars")
                 file_list = os.listdir(distillation_dir)
                 file_list = sorted(file_list, key=lambda x: os.path.getmtime(os.path.join(distillation_dir, x)))
@@ -582,21 +579,20 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
     def _calc_kl_loss(self, last_global_model, distillation_model_list):
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        dataloader = torch.utils.data.DataLoader(self.data,
-                                                 batch_size=self.train_model.get_train_strategy().get_batch_size(),
-                                                 shuffle=True,
-                                                 num_workers=1,
-                                                 pin_memory=True)
+
         num_batch = 0
         last_global_model = last_global_model.to(device)
-        loss_kl_list = [0 for _ in range(len(distillation_model_list))]
-        for idx, (batch_data, batch_target) in enumerate(dataloader):
-            batch_data = batch_data.to(device)
-            kl_pred = last_global_model(batch_data)
+        with torch.no_grad():
             for i in range(len(distillation_model_list)):
-                other_model_kl_pred = distillation_model_list[i](batch_data).detach()
-                loss_kl_list[i] += self._compute_loss(LossStrategy.KLDIV_LOSS, F.softmax(kl_pred, dim=1),
-                                                            F.softmax(other_model_kl_pred, dim=1))
+                distillation_model_list[i] = distillation_model_list[i].to(device)
+            loss_kl_list = [0 for _ in range(len(distillation_model_list))]
+            for idx, (batch_data, batch_target) in enumerate(self.train_dataloader):
+                batch_data = batch_data.to(device)
+                kl_pred = last_global_model(batch_data)
+                for i in range(len(distillation_model_list)):
+                    other_model_kl_pred = distillation_model_list[i](batch_data).detach()
+                    loss_kl_list[i] += self._compute_loss(LossStrategy.KLDIV_LOSS, F.softmax(kl_pred, dim=1),
+                                                                F.softmax(other_model_kl_pred, dim=1))
 
             num_batch += 1
         sum_kl_loss = 0
@@ -620,16 +616,17 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
         model.eval()
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model = model.to(device)
-        dataloader = torch.utils.data.DataLoader(self.test_data, batch_size=self.train_model.get_train_strategy().get_batch_size(), shuffle=True)
+
         with torch.no_grad():
             acc = 0
-            for idx, (batch_data, batch_target) in enumerate(dataloader):
+            for idx, (batch_data, batch_target) in enumerate(self.test_dataloader):
                 batch_data, batch_target = batch_data.to(device), batch_target.to(device)
                 pred = model(batch_data)
                 log_pred = torch.log(F.softmax(pred, dim=1))
-                loss = self._compute_loss(model.get_train_strategy().get_loss_function(), log_pred, batch_target)
+                loss = self._compute_loss(self.train_model.get_train_strategy().get_loss_function(), log_pred, batch_target)
                 acc += torch.eq(pred.argmax(dim=1), batch_target).sum().float().item()
-            self.logger.info("test_loss: {}, test_accuracy:{}".format(loss.item(), float(acc)/float(len(dataloader))))
+            self.logger.info("test_loss: {}, test_accuracy:{}".format(loss.item(), float(acc)/float(len(self.test_dataloader))))
+        model = model.to("cpu")
 
     def _fed_avg_aggregate(self, disillation_model_pars_list, weight_list, job_id, fed_step):
         avg_model_par = disillation_model_pars_list[0]
