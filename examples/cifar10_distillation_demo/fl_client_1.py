@@ -14,7 +14,7 @@ if __name__ == "__main__":
                                 "train_dataset_{}".format(CLIENT_ID))
 
     test_dataset_path = os.path.join(os.path.abspath("."), "data",
-                                     "test_dataset".format(CLIENT_ID))
+                                     "test_dataset")
     test_dataset = torch.load(test_dataset_path)
     dataset = torch.load(dataset_path)
 
