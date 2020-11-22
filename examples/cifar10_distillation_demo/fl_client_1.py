@@ -13,6 +13,9 @@ if __name__ == "__main__":
     dataset_path = os.path.join(os.path.abspath("."), "data",
                                 "train_dataset_{}".format(CLIENT_ID))
 
+    test_dataset_path = os.path.join(os.path.abspath("."), "data",
+                                     "test_dataset".format(CLIENT_ID))
+    test_dataset = torch.load(test_dataset_path)
     dataset = torch.load(dataset_path)
 
 
@@ -24,5 +27,5 @@ if __name__ == "__main__":
         train_strategy = TrainStrategy(optimizer=optimizer, batch_size=32, loss_function=LossStrategy.NLL_LOSS)
         gfl_model.set_train_strategy(train_strategy)
 
-    TrainerController(work_mode=WorkModeStrategy.WORKMODE_STANDALONE, models=gfl_models, data=dataset, test_data=None, client_id=CLIENT_ID,
+    TrainerController(work_mode=WorkModeStrategy.WORKMODE_STANDALONE, models=gfl_models, data=dataset, test_data=test_dataset, client_id=CLIENT_ID,
                       curve=True, local_epoch=3, concurrent_num=3).start()
