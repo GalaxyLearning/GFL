@@ -5,7 +5,7 @@ from gfl.core.client import FLClient
 from gfl.core.strategy import WorkModeStrategy, TrainStrategy, LossStrategy
 from gfl.core.trainer_controller import TrainerController
 
-CLIENT_ID = 0
+CLIENT_ID = 2
 
 if __name__ == "__main__":
     # CLIENT_ID = int(sys.argv[1])
@@ -14,6 +14,8 @@ if __name__ == "__main__":
                                 "train_dataset_{}".format(CLIENT_ID))
 
     dataset = torch.load(dataset_path)
+
+
     client = FLClient()
     gfl_models = client.get_remote_gfl_models()
 
