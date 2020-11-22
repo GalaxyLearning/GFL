@@ -377,7 +377,7 @@ class TrainDistillationStrategy(TrainNormalStrategy):
             if f.find("models_") != -1:
                 connected_clients_num += 1
                 files = os.listdir(os.path.join(job_model_base_path, f, "tmp_model_pars"))
-                files = sorted(files, key=lambda x: os.path.getmtime(os.path.join(job_model_base_path, x)))
+                files = sorted(files, key=lambda x: os.path.getmtime(os.path.join(job_model_base_path, f, "tmp_model_pars", x)))
                 if len(files) == 0 or int(files[-1].split("_")[-1]) < fed_step:
                     return other_models_pars, 0
                 else:
