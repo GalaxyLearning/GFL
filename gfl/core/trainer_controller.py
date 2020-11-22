@@ -32,12 +32,12 @@ class TrainerController(object):
     TrainerController is responsible for choosing a apprpriate train strategy for corresponding job
     """
 
-    def __init__(self, work_mode=WorkModeStrategy.WORKMODE_STANDALONE, models=None, data=None, test_data=None, client_id=0,
+    def __init__(self, work_mode=WorkModeStrategy.WORKMODE_STANDALONE, models=None, data=None, test_dataset=None, client_id=0,
                  client_ip="",
                  client_port=8081, server_url="", curve=False, local_epoch=3, concurrent_num=5):
         self.work_mode = work_mode
         self.data = data
-        self.test_data = test_data
+        self.test_data = test_dataset
         self.client_id = str(client_id)
         self.local_epoch = local_epoch
         self.concurrent_num = concurrent_num
