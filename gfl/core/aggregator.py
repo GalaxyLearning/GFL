@@ -58,7 +58,7 @@ class Aggregator(object):
                 # print("one_model_par_path: ", one_model_par_path)
                 one_model_par_files = os.listdir(one_model_par_path)
                 if one_model_par_files and len(one_model_par_files) != 0:
-                    last_model_par_file_num = self._find_last_model_file_num(one_model_par_files)
+                    last_model_par_file_num = len(one_model_par_files)
                     if last_model_par_file_num > fed_step:
                         model_par = torch.load(os.path.join(one_model_par_path, one_model_par_files[-1]))
                         job_model_pars.append(model_par)
