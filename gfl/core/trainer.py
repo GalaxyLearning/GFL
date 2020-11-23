@@ -550,6 +550,8 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
         global_model_pars_dir = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id),
                                              "global_models")
         global_model_path = os.path.join(global_model_pars_dir, "global_parameters_{}".format(fed_step))
+        if not os.path.exists(global_model_path):
+            return None
         new_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
         model_pars = torch.load(global_model_path)
         new_model.load_state_dict(model_pars)
@@ -577,7 +579,7 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
                 distillation_dir = os.path.join(job_model_dir, model_dir, "distillation_model_pars")
                 file_list = os.listdir(distillation_dir)
                 file_list = sorted(file_list, key=lambda x: os.path.getmtime(os.path.join(distillation_dir, x)))
-                if int(file_list[-1].split("_")[-1]) != fed_step:
+                if len(file_list) == 0 or int(file_list[-1].split("_")[-1]) != fed_step:
                     return False, []
                 else:
                     distillation_model_pars.append(os.path.join(distillation_dir, file_list[-1]))
@@ -686,8 +688,10 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
             local_fed_step = self._load_local_fed_step(job_tmp_models_path)
             if(local_fed_step < self.fed_step[self.job.get_job_id()]+1):
                 # aggregate_file = self._find_latest_global_model_pars(self.job.get_job_id())
-                self.model.set_model(self._load_global_model(self.job.get_job_id(), self.fed_step[self.job.get_job_id()]))
-                self._train(self.model, job_tmp_models_path, self.fed_step[self.job.get_job_id()]+1, self.local_epoch)
+                global_model = self._load_global_model(self.job.get_job_id(), self.fed_step[self.job.get_job_id()])
+                if global_model is not None:
+                    self.model.set_model(global_model)
+                    self._train(self.model, job_tmp_models_path, self.fed_step[self.job.get_job_id()]+1, self.local_epoch)
             other_model_pars, connected_clients_num = self._load_other_models_pars(self.job.get_job_id(),
                                                                                    self.fed_step[self.job.get_job_id()]+1)
             # job_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
