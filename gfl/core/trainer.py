@@ -714,7 +714,7 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
                 if(int(self.client_id) == (self.fed_step[self.job.get_job_id()] % connected_clients_num)):
                     # print(self.client_id, self.fed_step[self.job.get_job_id()] % connected_clients_num)
                     is_fed_avg, distillation_model_pars = self._could_fed_avg(self.job.get_job_id(), self.fed_step[self.job.get_job_id()]+1)
-                    # print("could fed_avg: {}".format(is_fed_avg))
+                    print("could fed_avg: {}".format(is_fed_avg))
                     if is_fed_avg:
                         self._execute_fed_avg(self.client_id, self.job.get_job_id(), self.fed_step[self.job.get_job_id()]+1, distillation_model_pars)
 
