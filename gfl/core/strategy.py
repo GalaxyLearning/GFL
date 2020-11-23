@@ -28,13 +28,14 @@ class FederateStrategy(Enum):
     FED_DISTILLATION = "fed_distillation"
 
 class LossStrategy(Enum):
-    L1_LOSS = "L1loss"
+    L1_LOSS = "L1Loss"
     MSE_LOSS = "MSELoss"
     CROSSENTROPY_LOSS = "CrossEntropyLoss"
     NLL_LOSS = "NLLLoss"
     POISSIONNLL_LOSS = "PoissonNLLLoss"
     KLDIV_LOSS = "KLDivLoss"
     BCE_LOSS = "BCELoss"
+    CE_LOSS = "CELoss"
     BCEWITHLOGITS_Loss = "BCEWithLogitsLoss"
     MARGINRANKING_Loss = "MarginRankingloss"
 

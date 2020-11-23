@@ -61,8 +61,10 @@ class TrainStrategy(object):
         """
         if loss_function == LossStrategy.NLL_LOSS:
             loss = F.nll_loss(output, label)
+        elif loss_function == LossStrategy.CE_LOSS:
+            loss = F.cross_entropy(output, label)
         elif loss_function == LossStrategy.KLDIV_LOSS:
-            loss = F.kl_div(torch.log(output), label, reduction='batchmean')
+            loss = F.kl_div(output, label, reduction='batchmean')
         elif isfunction(loss_function):
             loss = loss_function(output, label)
         return loss
