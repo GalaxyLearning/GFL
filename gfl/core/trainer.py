@@ -647,9 +647,9 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
         avg_model_par = disillation_model_pars_list[0]
         for key in avg_model_par.keys():
             for i in range(1, len(disillation_model_pars_list)):
-                # avg_model_par[key] += weight_list[i]*disillation_model_pars_list[i][key]
-                avg_model_par[key] += disillation_model_pars_list[i][key]
-            avg_model_par[key] = torch.div(avg_model_par[key], len(disillation_model_pars_list))
+                avg_model_par[key] += weight_list[i]*disillation_model_pars_list[i][key]
+                # avg_model_par[key] += disillation_model_pars_list[i][key]
+            # avg_model_par[key] = torch.div(avg_model_par[key], len(disillation_model_pars_list))
         self._test(avg_model_par)
         self._save_global_model(job_id, fed_step, avg_model_par)
 
