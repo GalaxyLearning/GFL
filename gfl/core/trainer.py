@@ -583,6 +583,7 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
                     return False, []
                 else:
                     distillation_model_pars.append(os.path.join(distillation_dir, file_list[-1]))
+        time.sleep(1)
         return True, distillation_model_pars
 
     def _calc_kl_loss(self, last_global_model, distillation_model_list):
