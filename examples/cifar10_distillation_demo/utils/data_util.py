@@ -67,9 +67,9 @@ def Dataset(dataset):
                               download=True, transform=val_trans)
         if dataset == 'cifar100':
             trainset = CIFAR100(root="~/data", train=True,
-                                download=False, transform=tra_trans)
+                                download=True, transform=tra_trans)
             testset = CIFAR100(root="~/data", train=False,
-                               download=False, transform=val_trans)
+                               download=True, transform=val_trans)
     if dataset == 'femnist' or 'mnist':
         tra_trans = transforms.Compose([
             transforms.Pad(2, padding_mode='edge'),
