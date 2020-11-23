@@ -125,10 +125,11 @@ class TrainNormalStrategy(TrainStrategy):
     TrainNormalStrategy provides traditional training method and some necessary methods
     """
 
-    def __init__(self, job, data, fed_step, client_id, local_epoch, model, curve):
+    def __init__(self, job, data, test_data, fed_step, client_id, local_epoch, model, curve):
         super(TrainNormalStrategy, self).__init__(client_id)
         self.job = job
         self.data = data
+        self.test_data = test_data
         self.job_model_path = os.path.join(os.path.abspath("."), "models_{}".format(job.get_job_id()))
         self.fed_step = fed_step
         self.local_epoch = local_epoch
@@ -139,6 +140,28 @@ class TrainNormalStrategy(TrainStrategy):
 
     def train(self):
         pass
+
+    def _test(self, global_model_pars):
+        model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
+        model.load_state_dict(global_model_pars)
+        model.eval()
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model = model.to(device)
+        test_dataloader = torch.utils.data.DataLoader(self.test_data,
+                                                           batch_size=self.model.get_train_strategy().get_batch_size(),
+                                                           shuffle=True)
+        with torch.no_grad():
+            acc = 0
+            for idx, (batch_data, batch_target) in enumerate(test_dataloader):
+                batch_data, batch_target = batch_data.to(device), batch_target.to(device)
+                pred = model(batch_data)
+                log_pred = torch.log(F.softmax(pred, dim=1))
+                loss = self._compute_loss(self.model.get_train_strategy().get_loss_function(), log_pred,
+                                          batch_target)
+                acc += torch.eq(pred.argmax(dim=1), batch_target).sum().float().item()
+            self.logger.info(
+                "test_loss: {}, test_accuracy:{}".format(loss.item(), float(acc) / float(len(test_dataloader))))
+        model = model.to("cpu")
 
     def _train(self, train_model, job_models_path, fed_step, local_epoch):
         """
@@ -361,9 +384,9 @@ class TrainDistillationStrategy(TrainNormalStrategy):
     """
 
     def __init__(self, job, data, test_data, fed_step, client_id, local_epoch, models, curve):
-        super(TrainDistillationStrategy, self).__init__(job, data, fed_step, client_id,local_epoch, models, curve)
+        super(TrainDistillationStrategy, self).__init__(job, data, test_data, fed_step, client_id,local_epoch, models, curve)
         self.job_model_path = os.path.join(os.path.abspath("."), "res", "models", "models_{}".format(job.get_job_id()))
-        self.test_data = test_data
+        # self.test_data = test_data
 
     def _load_other_models_pars(self, job_id, fed_step):
         """
@@ -465,11 +488,19 @@ class TrainStandloneNormalStrategy(TrainNormalStrategy):
     TrainStandloneNormalStrategy is responsible for controlling the process of traditional training in standalone mode
     """
 
-    def __init__(self, job, data, fed_step, client_id, local_epoch, model, curve):
-        super(TrainStandloneNormalStrategy, self).__init__(job, data, fed_step, client_id, local_epoch, model, curve)
+    def __init__(self, job, data, test_data, fed_step, client_id, local_epoch, model, curve):
+        super(TrainStandloneNormalStrategy, self).__init__(job, data, test_data,  fed_step, client_id, local_epoch, model, curve)
         self.logger = LoggerFactory.getLogger("TrainStandloneNormalStrategy", logging.INFO)
 
+    def _create_job_models_dir(self, client_id, job_id):
+        model_client_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id),
+                                               "models_{}".format(client_id))
+        if not os.path.exists(model_client_path):
+            os.makedirs(model_client_path)
+        return model_client_path
+
     def train(self):
+        model_client_path = self._create_job_models_dir(self.client_id, self.job.get_job_id())
         while True:
             self.fed_step[self.job.get_job_id()] = 0 if self.fed_step.get(self.job.get_job_id()) is None else \
                 self.fed_step.get(self.job.get_job_id())
@@ -485,27 +516,27 @@ class TrainStandloneNormalStrategy(TrainNormalStrategy):
                 break
             aggregate_file, fed_step = self._find_latest_aggregate_model_pars(self.job.get_job_id())
             if aggregate_file is not None and self.fed_step.get(self.job.get_job_id()) != fed_step:
-                if self.job.get_job_id() in runtime_config.EXEC_JOB_LIST:
-                    runtime_config.EXEC_JOB_LIST.remove(self.job.get_job_id())
-                self.fed_step[self.job.get_job_id()] = fed_step
-            if self.job.get_job_id() not in runtime_config.EXEC_JOB_LIST:
+            #     if self.job.get_job_id() in runtime_config.EXEC_JOB_LIST:
+            #         runtime_config.EXEC_JOB_LIST.remove(self.job.get_job_id())
+            #     self.fed_step[self.job.get_job_id()] = fed_step
+            # if self.job.get_job_id() not in runtime_config.EXEC_JOB_LIST:
                 # job_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
-                if aggregate_file is not None:
-                    self.logger.info("load {} parameters".format(aggregate_file))
-                    new_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
-                    model_pars = torch.load(aggregate_file)
-                    new_model.load_state_dict(model_pars)
-                    self.model.set_model(new_model)
-                job_models_path = self._create_job_models_dir(self.client_id, self.job.get_job_id())
+                # if aggregate_file is not None:
+                self.logger.info("load {} parameters".format(aggregate_file))
+                new_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
+                model_pars = torch.load(aggregate_file)
+                new_model.load_state_dict(model_pars)
+                self._test(model_pars)
+                self.model.set_model(new_model)
                 self.logger.info("job_{} is training, Aggregator strategy: {}".format(self.job.get_job_id(),
                                                                                       self.job.get_aggregate_strategy()))
-                runtime_config.EXEC_JOB_LIST.append(self.job.get_job_id())
-                self.acc, loss = self._train(self.model, job_models_path, self.fed_step.get(self.job.get_job_id()), self.local_epoch)
-                self.loss_list.append(loss)
-                self.accuracy_list.append(self.acc)
-                self.logger.info("job_{} {}th train accuracy: {}".format(self.job.get_job_id(),
-                                                                         self.fed_step.get(self.job.get_job_id()),
-                                                                         self.acc))
+                # runtime_config.EXEC_JOB_LIST.append(self.job.get_job_id())
+                self.acc, loss = self._train(self.model, model_client_path, self.fed_step.get(self.job.get_job_id()), self.local_epoch)
+
+                self.fed_step[self.job.get_job_id()] = fed_step
+                # self.logger.info("job_{} {}th train accuracy: {}".format(self.job.get_job_id(),
+                #                                                          self.fed_step.get(self.job.get_job_id()),
+                #                                                          self.acc))
 
 
 class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
@@ -519,19 +550,12 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
         self.train_model = model
         self.logger = LoggerFactory.getLogger("TrainStandloneDistillationStrategy", logging.INFO)
 
-        self.test_dataloader = torch.utils.data.DataLoader(self.test_data, batch_size=self.train_model.get_train_strategy().get_batch_size(), shuffle=True)
-
     def _create_dislillation_model_pars_path(self, client_id, job_id):
         distillation_model_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id), "models_{}".format(client_id),
                                        "distillation_model_pars")
         if not os.path.exists(distillation_model_path):
             os.makedirs(distillation_model_path)
         return distillation_model_path
-
-    def _find_latest_global_model_pars(self, job_id):
-        global_model_pars_dir = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id),
-                                             "global_models")
-
 
     def _init_global_model(self, job_id, fed_step):
         init_model_pars_dir = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id),
@@ -629,24 +653,6 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
             weight_list.append(float(kl_loss)/float(sum_kl_loss))
         return weight_list
 
-
-    def _test(self, global_model_pars):
-        model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
-        model.load_state_dict(global_model_pars)
-        model.eval()
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model = model.to(device)
-
-        with torch.no_grad():
-            acc = 0
-            for idx, (batch_data, batch_target) in enumerate(self.test_dataloader):
-                batch_data, batch_target = batch_data.to(device), batch_target.to(device)
-                pred = model(batch_data)
-                log_pred = torch.log(F.softmax(pred, dim=1))
-                loss = self._compute_loss(self.train_model.get_train_strategy().get_loss_function(), log_pred, batch_target)
-                acc += torch.eq(pred.argmax(dim=1), batch_target).sum().float().item()
-            self.logger.info("test_loss: {}, test_accuracy:{}".format(loss.item(), float(acc)/float(len(self.test_dataloader))))
-        model = model.to("cpu")
 
     def _fed_avg_aggregate(self, disillation_model_pars_list, weight_list, job_id, fed_step):
         avg_model_par = disillation_model_pars_list[0]

@@ -79,7 +79,7 @@ class TrainerController(object):
                 # print(job.get_aggregate_strategy())
                 gfl_model = ModelUtils.get_model_by_job_id(self.models, job.get_job_id())
                 if job.get_aggregate_strategy() == FederateStrategy.FED_AVG.value:
-                    self.job_train_strategy[job.get_job_id()] = TrainStandloneNormalStrategy(job, self.data,
+                    self.job_train_strategy[job.get_job_id()] = TrainStandloneNormalStrategy(job, self.data, self.test_data,
                                                                                              self.fed_step,
                                                                                              self.client_id,
                                                                                              self.local_epoch,
