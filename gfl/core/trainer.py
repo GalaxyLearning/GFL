@@ -652,9 +652,9 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
         avg_model_par = disillation_model_pars_list[0]
         for key in avg_model_par.keys():
             for i in range(1, len(disillation_model_pars_list)):
-                avg_model_par[key] += weight_list[i]*disillation_model_pars_list[i][key]
-                # avg_model_par[key] += disillation_model_pars_list[i][key]
-            # avg_model_par[key] = torch.div(avg_model_par[key], len(disillation_model_pars_list))
+                # avg_model_par[key] += weight_list[i]*disillation_model_pars_list[i][key]
+                avg_model_par[key] += disillation_model_pars_list[i][key]
+            avg_model_par[key] = torch.div(avg_model_par[key], len(disillation_model_pars_list))
         self._test(avg_model_par)
         self._save_global_model(job_id, fed_step, avg_model_par)
 
@@ -665,11 +665,11 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
         for distillation_model_pars_file in distillation_model_pars_file_list:
             distillation_model = self._load_distillation_model(distillation_model_pars_file)
             distillation_model_list.append(distillation_model)
-        kl_list, sum_kl_loss = self._calc_kl_loss(last_global_model, distillation_model_list)
+        # kl_list, sum_kl_loss = self._calc_kl_loss(last_global_model, distillation_model_list)
         distillation_model_pars_list = [distillation_model.state_dict() for distillation_model in distillation_model_list]
-        weight_list = self._calc_model_pars_weight(kl_list, sum_kl_loss)
-        print("weight_list: ", weight_list)
-        self._fed_avg_aggregate(distillation_model_pars_list, weight_list, job_id, fed_step)
+        # weight_list = self._calc_model_pars_weight(kl_list, sum_kl_loss)
+        # print("weight_list: ", weight_list)
+        self._fed_avg_aggregate(distillation_model_pars_list, [], job_id, fed_step)
 
 
     def train(self):
