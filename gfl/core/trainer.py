@@ -621,7 +621,7 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
         weight_list = []
         n = len(kl_list)
         for kl_loss in kl_list:
-            weight_list.append(n*float(kl_loss)/float(sum_kl_loss))
+            weight_list.append(float(kl_loss)/float(sum_kl_loss))
         return weight_list
 
 
