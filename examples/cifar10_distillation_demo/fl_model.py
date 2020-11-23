@@ -43,9 +43,9 @@ class CNN(nn.Module):
 
 if __name__ == "__main__":
 
-    model = LeNet5()
+    model = CNN()
 
     job_manager = JobManager()
     job = job_manager.generate_job(work_mode=strategy.WorkModeStrategy.WORKMODE_STANDALONE,
-                                   fed_strategy=strategy.FederateStrategy.FED_DISTILLATION, epoch=100, model=LeNet5, distillation_alpha=0.5)
+                                   fed_strategy=strategy.FederateStrategy.FED_DISTILLATION, epoch=100, model=CNN, distillation_alpha=0.5)
     job_manager.submit_job(job, model)
