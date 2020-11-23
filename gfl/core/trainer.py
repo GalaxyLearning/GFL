@@ -374,7 +374,7 @@ class TrainDistillationStrategy(TrainNormalStrategy):
         other_models_pars = []
         connected_clients_num = 0
         for f in os.listdir(job_model_base_path):
-            if f.find("models_") != -1:
+            if f.find("models_") != -1 and int(f.split("_")[-1]) != int(self.client_id):
                 connected_clients_num += 1
                 files = os.listdir(os.path.join(job_model_base_path, f, "tmp_model_pars"))
                 files = sorted(files, key=lambda x: os.path.getmtime(os.path.join(job_model_base_path, f, "tmp_model_pars", x)))
@@ -385,7 +385,7 @@ class TrainDistillationStrategy(TrainNormalStrategy):
         time.sleep(1)
         for i in range(len(other_models_pars)):
             other_models_pars[i] = torch.load(other_models_pars[i])
-        return other_models_pars, connected_clients_num
+        return other_models_pars, connected_clients_num+1
 
     def _calc_rate(self, received, total):
         """
