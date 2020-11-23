@@ -6,6 +6,7 @@ from torchvision import transforms
 from torch.utils.data import Subset, DataLoader
 from PIL import Image
 
+
 class Data(object):
 
     def __init__(self, dataset, split):
