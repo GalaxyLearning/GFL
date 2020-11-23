@@ -381,8 +381,10 @@ class TrainDistillationStrategy(TrainNormalStrategy):
                 if len(files) == 0 or int(files[-1].split("_")[-1]) < fed_step:
                     return other_models_pars, 0
                 else:
-                    time.sleep(1)
-                    other_models_pars.append(torch.load(os.path.join(job_model_base_path, f, "tmp_model_pars", files[-1])))
+                    other_models_pars.append(os.path.join(job_model_base_path, f, "tmp_model_pars", files[-1]))
+        time.sleep(1)
+        for i in range(len(other_models_pars)):
+            other_models_pars[i] = torch.load(other_models_pars[i])
         return other_models_pars, connected_clients_num
 
     def _calc_rate(self, received, total):
@@ -575,7 +577,7 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
         distillation_model_pars = []
         job_model_dir = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id))
         for model_dir in os.listdir(job_model_dir):
-            if os.path.isdir(os.path.join(job_model_dir, model_dir)) and len(str(model_dir.split("_")[-1])) == 1:
+            if model_dir.find("models_") != -1:
                 distillation_dir = os.path.join(job_model_dir, model_dir, "distillation_model_pars")
                 file_list = os.listdir(distillation_dir)
                 file_list = sorted(file_list, key=lambda x: os.path.getmtime(os.path.join(distillation_dir, x)))
@@ -699,8 +701,7 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
             # self.logger.info("job_{} is training, Aggregator strategy: {}, L2_dist: {}".format(self.job.get_job_id(),
             #                                                                                    self.job.get_aggregate_strategy(),
             #                                                                                    self.job.get_l2_dist()))
-            if other_model_pars is not None and connected_clients_num and self._calc_rate(len(other_model_pars),
-                                                                                          connected_clients_num) >= THRESHOLD:
+            if other_model_pars is not None and connected_clients_num:
 
                 self.logger.info("model distillating....")
 
