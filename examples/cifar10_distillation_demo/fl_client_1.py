@@ -5,6 +5,10 @@ from gfl.core.client import FLClient
 from gfl.core.strategy import WorkModeStrategy, TrainStrategy, LossStrategy
 from gfl.core.trainer_controller import TrainerController
 
+import data_util
+from data_util import FEMNIST
+
+
 CLIENT_ID = 1
 
 if __name__ == "__main__":
