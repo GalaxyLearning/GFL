@@ -134,11 +134,6 @@ class TrainNormalStrategy(TrainStrategy):
         self.loss_list = []
         self.model = model
         self.curve = curve
-        self.train_dataloader = torch.utils.data.DataLoader(self.data,
-                                                            batch_size=self.model.get_train_strategy().get_batch_size(),
-                                                            shuffle=True,
-                                                            num_workers=1,
-                                                            pin_memory=True)
 
     def train(self):
         pass
@@ -176,8 +171,12 @@ class TrainNormalStrategy(TrainStrategy):
                 optimizer = self._generate_new_optimizer(model, train_model.get_train_strategy().get_optimizer())
             else:
                 optimizer = self._generate_new_scheduler(model, train_model.get_train_strategy().get_scheduler())
-
-            for idx, (batch_data, batch_target) in enumerate(self.train_dataloader):
+            train_dataloader = torch.utils.data.DataLoader(self.data,
+                                                                batch_size=self.model.get_train_strategy().get_batch_size(),
+                                                                shuffle=True,
+                                                                num_workers=0,
+                                                                pin_memory=True)
+            for idx, (batch_data, batch_target) in enumerate(train_dataloader):
                 batch_data, batch_target = batch_data.to(device), batch_target.to(device)
                 pred = model(batch_data)
                 log_pred = torch.log(F.softmax(pred, dim=1))
@@ -194,7 +193,7 @@ class TrainNormalStrategy(TrainStrategy):
                     #     accuracy = accuracy_function(pred, batch_target)
                     self.logger.info("train_loss: {}, train_acc: {}".format(loss.item(), float(batch_acc)/len(batch_target)))
             step += 1
-            accuracy = acc / len(self.train_dataloader.dataset)
+            accuracy = acc / len(train_dataloader.dataset)
 
 
         torch.save(model.state_dict(),
@@ -416,12 +415,18 @@ class TrainDistillationStrategy(TrainNormalStrategy):
             scheduler = train_model.get_train_strategy().get_scheduler()
         while step < local_epoch:
 
+            train_dataloader = torch.utils.data.DataLoader(self.data,
+                                                           batch_size=self.model.get_train_strategy().get_batch_size(),
+                                                           shuffle=True,
+                                                           num_workers=0,
+                                                           pin_memory=True)
+
             if scheduler is not None:
                 scheduler.step()
 
             optimizer = self._generate_new_optimizer(model, train_model.get_train_strategy().get_optimizer())
             acc = 0
-            for idx, (batch_data, batch_target) in enumerate(self.train_dataloader):
+            for idx, (batch_data, batch_target) in enumerate(train_dataloader):
                 batch_data = batch_data.to(device)
                 batch_target = batch_target.to(device)
                 kl_pred = model(batch_data)
@@ -443,10 +448,10 @@ class TrainDistillationStrategy(TrainNormalStrategy):
                 loss.backward()
                 optimizer.step()
                 if idx % 200 == 0:
-                    print("distillation_loss: ", loss.item())
+                    self.logger.info("distillation_loss: {}".format(loss.item()))
                 #     self.logger.info("distillation_loss: {}".format(loss.item()))
             step += 1
-            accuracy = acc / len(self.train_dataloader.dataset)
+            accuracy = acc / len(train_dataloader.dataset)
 
         torch.save(model.state_dict(),
                        os.path.join(distillation_model_path, "tmp_parameters_{}".format(self.fed_step[self.job.get_job_id()] + 1)))
@@ -584,11 +589,16 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
 
         num_batch = 0
         last_global_model = last_global_model.to(device)
+        train_dataloader = torch.utils.data.DataLoader(self.data,
+                                                       batch_size=self.model.get_train_strategy().get_batch_size(),
+                                                       shuffle=True,
+                                                       num_workers=0,
+                                                       pin_memory=True)
         with torch.no_grad():
             for i in range(len(distillation_model_list)):
                 distillation_model_list[i] = distillation_model_list[i].to(device)
             loss_kl_list = [0 for _ in range(len(distillation_model_list))]
-            for idx, (batch_data, batch_target) in enumerate(self.train_dataloader):
+            for idx, (batch_data, batch_target) in enumerate(train_dataloader):
                 batch_data = batch_data.to(device)
                 kl_pred = last_global_model(batch_data)
                 for i in range(len(distillation_model_list)):
@@ -695,8 +705,11 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
                 # self.accuracy_list.append(self.acc)
                 # self.loss_list.append(loss)
                 self.logger.info("model distillation success")
-                if(self.client_id == (self.fed_step[self.job.get_job_id()] % connected_clients_num)):
-                    is_fed_avg, distillation_model_pars = self._could_fed_avg(self.job.get_job_id(), self.fed_step[self.job.get_job_id()]+1, connected_clients_num)
+
+                if(int(self.client_id) == (self.fed_step[self.job.get_job_id()] % connected_clients_num)):
+                    # print(self.client_id, self.fed_step[self.job.get_job_id()] % connected_clients_num)
+                    is_fed_avg, distillation_model_pars = self._could_fed_avg(self.job.get_job_id(), self.fed_step[self.job.get_job_id()]+1)
+                    # print("could fed_avg: {}".format(is_fed_avg))
                     if is_fed_avg:
                         self._execute_fed_avg(self.client_id, self.job.get_job_id(), self.fed_step[self.job.get_job_id()]+1, distillation_model_pars)
 
