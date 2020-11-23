@@ -141,9 +141,9 @@ def Dataset(dataset):
             transforms.Normalize((0.1307,), (0.3081,)),
         ])
         if dataset == 'femnist':
-            trainset = FEMNIST(root='~/data', train=True, transform=tra_trans)
-            testset = FEMNIST(root='~/data', train=False, transform=val_trans)
+            trainset = FEMNIST(root='~/data', train=True, download=True, transform=tra_trans)
+            testset = FEMNIST(root='~/data', train=False, download=True, transform=val_trans)
         if dataset == 'mnist':
-            trainset = MNIST(root='~/data', train=True, transform=tra_trans)
-            testset = MNIST(root='~/data', train=False, transform=val_trans)
+            trainset = MNIST(root='~/data', train=True, download=True, transform=tra_trans)
+            testset = MNIST(root='~/data', train=False, download=True, transform=val_trans)
     return trainset, testset
