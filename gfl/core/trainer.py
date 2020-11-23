@@ -15,6 +15,7 @@
 import os
 import os
 import copy
+import time
 import torch
 import shutil
 import logging
@@ -381,6 +382,7 @@ class TrainDistillationStrategy(TrainNormalStrategy):
                 if len(files) == 0 or int(files[-1].split("_")[-1]) < fed_step:
                     return other_models_pars, 0
                 else:
+                    time.sleep(1)
                     other_models_pars.append(torch.load(os.path.join(job_model_base_path, f, "tmp_model_pars", files[-1])))
         return other_models_pars, connected_clients_num
 
