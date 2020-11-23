@@ -438,10 +438,8 @@ class TrainDistillationStrategy(TrainNormalStrategy):
                 for other_model_pars in other_models_pars:
                     other_model.load_state_dict(other_model_pars)
                     other_model_kl_pred = other_model(batch_data).detach()
-                    if job_l2_dist:
-                        loss_distillation += self._compute_l2_dist(kl_pred, other_model_kl_pred)
-                    else:
-                        loss_distillation += self._compute_loss(LossStrategy.KLDIV_LOSS, F.softmax(kl_pred, dim=1),
+
+                    loss_distillation += self._compute_loss(LossStrategy.KLDIV_LOSS, F.softmax(kl_pred, dim=1),
                                                                 F.softmax(other_model_kl_pred, dim=1))
 
                 loss_s = self._compute_loss(train_model.get_train_strategy().get_loss_function(), pred, batch_target)
@@ -649,8 +647,9 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
         avg_model_par = disillation_model_pars_list[0]
         for key in avg_model_par.keys():
             for i in range(1, len(disillation_model_pars_list)):
-                avg_model_par[key] += weight_list[i]*disillation_model_pars_list[i][key]
-            # avg_model_par[key] = torch.div(avg_model_par[key], len(disillation_model_pars_list))
+                # avg_model_par[key] += weight_list[i]*disillation_model_pars_list[i][key]
+                avg_model_par[key] += disillation_model_pars_list[i][key]
+            avg_model_par[key] = torch.div(avg_model_par[key], len(disillation_model_pars_list))
         self._test(avg_model_par)
         self._save_global_model(job_id, fed_step, avg_model_par)
 
@@ -664,6 +663,7 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
         kl_list, sum_kl_loss = self._calc_kl_loss(last_global_model, distillation_model_list)
         distillation_model_pars_list = [distillation_model.state_dict() for distillation_model in distillation_model_list]
         weight_list = self._calc_model_pars_weight(kl_list, sum_kl_loss)
+        print("weight_list: ", weight_list)
         self._fed_avg_aggregate(distillation_model_pars_list, weight_list, job_id, fed_step)
 
 
