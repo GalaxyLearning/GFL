@@ -155,12 +155,12 @@ class TrainNormalStrategy(TrainStrategy):
             for idx, (batch_data, batch_target) in enumerate(test_dataloader):
                 batch_data, batch_target = batch_data.to(device), batch_target.to(device)
                 pred = model(batch_data)
-                log_pred = torch.log(F.softmax(pred, dim=1))
-                loss = self._compute_loss(self.model.get_train_strategy().get_loss_function(), log_pred,
+                # log_pred = torch.log(F.softmax(pred, dim=1))
+                loss = self._compute_loss(self.model.get_train_strategy().get_loss_function(), pred,
                                           batch_target)
                 acc += torch.eq(pred.argmax(dim=1), batch_target).sum().float().item()
             self.logger.info(
-                "test_loss: {}, test_accuracy:{}".format(loss.item(), float(acc) / float(len(test_dataloader))))
+                "test_loss: {}, test_accuracy:{}".format(loss.item(), float(acc) / float(len(test_dataloader.dataset))))
         model = model.to("cpu")
 
     def _train(self, train_model, job_models_path, fed_step, local_epoch):
@@ -205,7 +205,7 @@ class TrainNormalStrategy(TrainStrategy):
                 batch_data, batch_target = batch_data.to(device), batch_target.to(device)
                 pred = model(batch_data)
                 log_pred = torch.log(F.softmax(pred, dim=1))
-                loss = self._compute_loss(train_model.get_train_strategy().get_loss_function(), log_pred, batch_target)
+                loss = self._compute_loss(train_model.get_train_strategy().get_loss_function(), pred, batch_target)
                 batch_acc = torch.eq(pred.argmax(dim=1), batch_target).sum().float().item()
                 acc += batch_acc
                 optimizer.zero_grad()
