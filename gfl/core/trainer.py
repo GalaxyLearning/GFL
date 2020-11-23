@@ -611,6 +611,8 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
 
                 num_batch += 1
         sum_kl_loss = 0
+        print("kl_list:  ", loss_kl_list)
+        print("num_batch: ", num_batch)
         for i in range(len(loss_kl_list)):
             loss_kl_list[i] /= num_batch
             sum_kl_loss += loss_kl_list[i]
@@ -620,7 +622,7 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
     def _calc_model_pars_weight(self, kl_list, sum_kl_loss):
         weight_list = []
         n = len(kl_list)
-        print("kl_list:  ", kl_list)
+
         for kl_loss in kl_list:
             weight_list.append(float(kl_loss)/float(sum_kl_loss))
         return weight_list
