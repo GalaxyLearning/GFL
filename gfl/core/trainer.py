@@ -713,12 +713,15 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
 
                 if(int(self.client_id) == (self.fed_step[self.job.get_job_id()] % connected_clients_num)):
                     # print(self.client_id, self.fed_step[self.job.get_job_id()] % connected_clients_num)
-                    is_fed_avg, distillation_model_pars = self._could_fed_avg(self.job.get_job_id(), self.fed_step[self.job.get_job_id()]+1)
-                    print("could fed_avg: {}".format(is_fed_avg))
-                    if is_fed_avg:
-                        self._execute_fed_avg(self.client_id, self.job.get_job_id(), self.fed_step[self.job.get_job_id()]+1, distillation_model_pars)
+                    while True:
+                        is_fed_avg, distillation_model_pars = self._could_fed_avg(self.job.get_job_id(), self.fed_step[self.job.get_job_id()]+1)
+                        print("could fed_avg: {}".format(is_fed_avg))
+                        if is_fed_avg:
+                            self._execute_fed_avg(self.client_id, self.job.get_job_id(), self.fed_step[self.job.get_job_id()]+1, distillation_model_pars)
+                            break
+                        time.sleep(2)
 
-                    self.fed_step[self.job.get_job_id()] = self.fed_step.get(self.job.get_job_id()) + 1
+                self.fed_step[self.job.get_job_id()] = self.fed_step.get(self.job.get_job_id()) + 1
 
             # else:
             #     global_model_pars_dir = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(self.job.get_job_id()),
