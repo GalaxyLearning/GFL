@@ -606,15 +606,15 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
                 kl_pred = last_global_model(batch_data)
                 for i in range(len(distillation_model_list)):
                     other_model_kl_pred = distillation_model_list[i](batch_data)
-                    loss_kl_list[i] += self._compute_loss(LossStrategy.KLDIV_LOSS, F.softmax(kl_pred, dim=1),
+                    loss_kl_list[i] = self._compute_loss(LossStrategy.KLDIV_LOSS, F.softmax(kl_pred, dim=1),
                                                                 F.softmax(other_model_kl_pred, dim=1)).item()
-
-                num_batch += 1
+                break
+                # num_batch += 1
         sum_kl_loss = 0
         print("kl_list:  ", loss_kl_list)
-        print("num_batch: ", num_batch)
+        # print("num_batch: ", num_batch)
         for i in range(len(loss_kl_list)):
-            loss_kl_list[i] /= num_batch
+            # loss_kl_list[i] /= num_batch
             sum_kl_loss += loss_kl_list[i]
         return loss_kl_list, sum_kl_loss
 
