@@ -564,11 +564,11 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
         return new_model
 
 
-    def _could_fed_avg(self, job_id, fed_step, connected_clients_num):
+    def _could_fed_avg(self, job_id, fed_step):
         distillation_model_pars = []
         job_model_dir = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id))
         for model_dir in os.listdir(job_model_dir):
-            if os.path.isdir(os.path.join(job_model_dir, model_dir)) and len(str(model_dir.split("_")[-1]))==1 and int(model_dir.split("_")[-1]) < connected_clients_num:
+            if os.path.isdir(os.path.join(job_model_dir, model_dir)) and len(str(model_dir.split("_")[-1])) == 1:
                 distillation_dir = os.path.join(job_model_dir, model_dir, "distillation_model_pars")
                 file_list = os.listdir(distillation_dir)
                 file_list = sorted(file_list, key=lambda x: os.path.getmtime(os.path.join(distillation_dir, x)))
@@ -695,9 +695,10 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
                 # self.accuracy_list.append(self.acc)
                 # self.loss_list.append(loss)
                 self.logger.info("model distillation success")
-                is_fed_avg, distillation_model_pars = self._could_fed_avg(self.job.get_job_id(), self.fed_step[self.job.get_job_id()]+1, connected_clients_num)
-                if is_fed_avg:
-                    self._execute_fed_avg(self.client_id, self.job.get_job_id(), self.fed_step[self.job.get_job_id()]+1, distillation_model_pars)
+                if(self.client_id == (self.fed_step[self.job.get_job_id()] % connected_clients_num)):
+                    is_fed_avg, distillation_model_pars = self._could_fed_avg(self.job.get_job_id(), self.fed_step[self.job.get_job_id()]+1, connected_clients_num)
+                    if is_fed_avg:
+                        self._execute_fed_avg(self.client_id, self.job.get_job_id(), self.fed_step[self.job.get_job_id()]+1, distillation_model_pars)
 
                 self.fed_step[self.job.get_job_id()] = self.fed_step.get(self.job.get_job_id()) + 1
 
