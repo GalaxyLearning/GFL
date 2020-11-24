@@ -184,12 +184,12 @@ class TrainNormalStrategy(TrainStrategy):
         #     self.logger.info("test_accuracy: {}, test_loss: {}".format(test_accuracy, test_loss))
         model = model.to(device)
         model.train()
-        if train_model.get_train_strategy().get_scheduler() is not None:
-            scheduler = train_model.get_train_strategy().get_scheduler()
+        # if train_model.get_train_strategy().get_scheduler() is not None:
+        #     scheduler = train_model.get_train_strategy().get_scheduler()
         while step < local_epoch:
 
-            if scheduler is not None:
-                scheduler.step()
+            # if scheduler is not None:
+            #     scheduler.step()
             acc = 0
 
             if train_model.get_train_strategy().get_optimizer() is not None:
