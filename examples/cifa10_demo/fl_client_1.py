@@ -4,7 +4,8 @@ from torchvision import datasets, transforms
 from gfl.core.client import FLClient
 from gfl.core.strategy import WorkModeStrategy, TrainStrategy, LossStrategy
 from gfl.core.trainer_controller import TrainerController
-
+import sys
+sys.path.append(os.path.join(os.path.abspath("."), "utils"))
 CLIENT_ID = 1
 
 if __name__ == "__main__":
