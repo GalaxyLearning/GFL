@@ -60,7 +60,7 @@ class Aggregator(object):
                 if one_model_par_files and len(one_model_par_files) != 0:
                     last_model_par_file_num = len(one_model_par_files)
                     if last_model_par_file_num > fed_step:
-                        model_par = torch.load(os.path.join(one_model_par_path, one_model_par_files[-1]))
+                        model_par = torch.load(os.path.join(one_model_par_path, "tmp_parameters_{}".format(last_model_par_file_num-1)))
                         job_model_pars.append(model_par)
                     else:
                         return None, 0
