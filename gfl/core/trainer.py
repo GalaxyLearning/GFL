@@ -204,7 +204,7 @@ class TrainNormalStrategy(TrainStrategy):
             for idx, (batch_data, batch_target) in enumerate(train_dataloader):
                 batch_data, batch_target = batch_data.to(device), batch_target.to(device)
                 pred = model(batch_data)
-                log_pred = torch.log(F.softmax(pred, dim=1))
+                # log_pred = torch.log(F.softmax(pred, dim=1))
                 loss = self._compute_loss(train_model.get_train_strategy().get_loss_function(), pred, batch_target)
                 batch_acc = torch.eq(pred.argmax(dim=1), batch_target).sum().float().item()
                 acc += batch_acc
@@ -212,7 +212,7 @@ class TrainNormalStrategy(TrainStrategy):
                 loss.backward()
                 optimizer.step()
 
-                if idx % 100 == 0:
+                if idx % 200 == 0:
                     # accuracy_function = train_model.get_train_strategy().get_accuracy_function()
                     # if accuracy_function is not None and isfunction(accuracy_function):
                     #     accuracy = accuracy_function(pred, batch_target)
@@ -467,7 +467,7 @@ class TrainDistillationStrategy(TrainNormalStrategy):
                     loss_distillation += self._compute_loss(LossStrategy.KLDIV_LOSS, F.log_softmax(kl_pred, dim=1),
                                                                 F.softmax(other_model_kl_pred, dim=1))
 
-                loss_s = self._compute_loss(train_model.get_train_strategy().get_loss_function(), pred, batch_target)
+                loss_s = self._compute_loss(train_model.get_train_strategy().get_loss_function(), kl_pred, batch_target)
                 loss = loss_s + self.job.get_distillation_alpha() * loss_distillation
                 optimizer.zero_grad()
                 loss.backward()
