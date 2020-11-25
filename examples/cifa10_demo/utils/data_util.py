@@ -1,7 +1,7 @@
 import os
 import torch
 from random import shuffle
-from torchvision.datasets import utils, MNIST, CIFAR10, CIFAR100
+from torchvision.datasets import utils, MNIST, CIFAR10, CIFAR100, STL10, FashionMNIST
 from torchvision import transforms
 from torch.utils.data import Subset, DataLoader
 from PIL import Image
@@ -132,7 +132,8 @@ def Dataset(dataset):
                                 download=True, transform=tra_trans)
             testset = CIFAR100(root="~/data", train=False,
                                download=True, transform=val_trans)
-    if dataset == 'femnist' or 'mnist':
+
+    if dataset == 'femnist' or 'mnist' or 'fashonmnist':
         tra_trans = transforms.Compose([
             transforms.Pad(2, padding_mode='edge'),
             transforms.ToTensor(),
@@ -149,4 +150,8 @@ def Dataset(dataset):
         if dataset == 'mnist':
             trainset = MNIST(root='~/data', train=True, download=True, transform=tra_trans)
             testset = MNIST(root='~/data', train=False, download=True, transform=val_trans)
+        if dataset == 'fashonmnist':
+            trainset = FashionMNIST(root='~/data', train=True, download=True, transform=tra_trans)
+            testset = FashionMNIST(root='~/data', train=False, download=True, transform=val_trans)
+
     return trainset, testset
