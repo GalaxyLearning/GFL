@@ -5,6 +5,7 @@ from torchvision.datasets import utils, MNIST, CIFAR10, CIFAR100, STL10, Fashion
 from torchvision import transforms
 from torch.utils.data import Subset, DataLoader
 from PIL import Image
+import cv2
 
 
 class Data(object):
@@ -136,13 +137,22 @@ def Dataset(dataset):
     if dataset == 'femnist' or 'mnist' or 'fashonmnist':
         tra_trans = transforms.Compose([
             transforms.Pad(2, padding_mode='edge'),
+            # transforms.ToPILImage(),
+            transforms.Grayscale(num_output_channels=3),
             transforms.ToTensor(),
-            transforms.Normalize((0.1307,), (0.3081,)),
+            # transforms.Lambda(lambda x: x.repeat(3, 1, 1)),
+            # transforms.Normalize((0.1307,), (0.3081,)),
+            transforms.Normalize((0.4914, 0.4822, 0.4465),
+                                 (0.2023, 0.1994, 0.2010)),
         ])
         val_trans = transforms.Compose([
             transforms.Pad(2, padding_mode='edge'),
+            # transforms.ToPILImage(),
+            transforms.Grayscale(num_output_channels=3),
             transforms.ToTensor(),
-            transforms.Normalize((0.1307,), (0.3081,)),
+            # transforms.Normalize((0.1307,), (0.3081,)),
+            transforms.Normalize((0.4914, 0.4822, 0.4465),
+                                 (0.2023, 0.1994, 0.2010)),
         ])
         if dataset == 'femnist':
             trainset = FEMNIST(root='~/data', train=True, download=True, transform=tra_trans)
