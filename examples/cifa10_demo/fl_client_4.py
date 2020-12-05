@@ -11,7 +11,7 @@ CLIENT_ID = 4
 if __name__ == "__main__":
     # CLIENT_ID = int(sys.argv[1])
 
-    dataset_path = os.path.join(os.path.abspath("utils"), "data",
+    dataset_path = os.path.join(os.path.abspath("."), "data",
                                 "train_dataset_{}".format(CLIENT_ID))
     test_dataset_path = os.path.join(os.path.abspath("."), "data",
                                      "test_dataset")
