@@ -677,14 +677,22 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
         # print("weight_list: ", weight_list)
         self._fed_avg_aggregate(distillation_model_pars_list, [], job_id, fed_step)
 
+    def _get_fed_step(self, job_id):
+        global_model_pars_dir = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id),
+                                             "global_models")
+        if not os.path.exists(global_model_pars_dir):
+            return 0
+        return len(os.listdir(global_model_pars_dir))-1
+
 
     def train(self):
         distillation_model_path = self._create_dislillation_model_pars_path(self.client_id, self.job.get_job_id())
         job_tmp_models_path = self._create_job_tmp_models_dir(self.client_id, self.job.get_job_id())
         self._init_global_model(self.job.get_job_id(), 0)
         while True:
-            self.fed_step[self.job.get_job_id()] = 0 if self.fed_step.get(
-                self.job.get_job_id()) is None else self.fed_step.get(self.job.get_job_id())
+            self.fed_step[self.job.get_job_id()] = self._get_fed_step(self.job.get_job_id())
+            # self.fed_step[self.job.get_job_id()] = 0 if self.fed_step.get(
+            #     self.job.get_job_id()) is None else self.fed_step.get(self.job.get_job_id())
             # print("test_iter_num: ", self.job_iter_dict[self.job.get_job_id()])
             if self.fed_step.get(self.job.get_job_id()) is not None and self.fed_step.get(
                     self.job.get_job_id()) >= self.job.get_epoch():
