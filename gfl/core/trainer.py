@@ -59,13 +59,14 @@ class TrainStrategy(object):
         :param label:
         :return:
         """
-        label = label.long()
+
         if loss_function == LossStrategy.NLL_LOSS:
             loss = F.nll_loss(output, label)
         elif loss_function == LossStrategy.CE_LOSS:
-            loss = F.cross_entropy(output, label.long())
+            label = label.long()
+            loss = F.cross_entropy(output, label)
         elif loss_function == LossStrategy.KLDIV_LOSS:
-            loss = F.kl_div(output, label.long(), reduction='batchmean')
+            loss = F.kl_div(output, label, reduction='batchmean')
         elif isfunction(loss_function):
             loss = loss_function(output, label)
         return loss
