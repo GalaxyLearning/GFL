@@ -1,8 +1,10 @@
+import os
 import torch
 from torch import nn
 import torch.nn.functional as F
 import gfl.core.strategy as strategy
 from gfl.core.job_manager import JobManager
+from torchvision.datasets import CIFAR10
 
 
 class LeNet5(nn.Module):
@@ -258,10 +260,61 @@ class ResNet56(nn.Module):
 
 
 if __name__ == "__main__":
-
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = ResNet56()
+    # model = model.to(device)
 
     job_manager = JobManager()
     job = job_manager.generate_job(work_mode=strategy.WorkModeStrategy.WORKMODE_STANDALONE,
                                    fed_strategy=strategy.FederateStrategy.FED_AVG, epoch=100, model=ResNet56)
     job_manager.submit_job(job, model)
+
+    # train_dataset = torch.load(os.path.join("./data", "train_dataset_0"))
+    # test_dataset = torch.load(os.path.join("./data", "test_dataset"))
+    # train_dataloader = torch.utils.data.DataLoader(train_dataset,
+    #                                                batch_size=64,
+    #                                                shuffle=True,
+    #                                                num_workers=0,
+    #                                                pin_memory=True)
+    # test_dataloader = torch.utils.data.DataLoader(test_dataset,
+    #                                                batch_size=64,
+    #                                                shuffle=True,
+    #                                                num_workers=0,
+    #                                                pin_memory=True)
+    # optimizer = torch.optim.SGD(model.parameters(), lr=0.001, weight_decay=1e-3)
+    # acc = 0
+    # # print(model)
+    # for _ in range(100):
+    #     model.train()
+    #     for idx, (batch_data, batch_target) in enumerate(train_dataloader):
+    #         batch_data, batch_target = batch_data.to(device), batch_target.to(device)
+    #         # print(batch_data.shape)
+    #         pred = model(batch_data)
+    #         # log_pred = torch.log(F.softmax(pred, dim=1))
+    #         loss = F.cross_entropy(pred, batch_target.long())
+    #         batch_acc = torch.eq(pred.argmax(dim=1), batch_target).sum().float().item()
+    #         acc += batch_acc
+    #         optimizer.zero_grad()
+    #         loss.backward()
+    #         optimizer.step()
+    #
+    #         # if idx % 200 == 0:
+    #             # accuracy_function = train_model.get_train_strategy().get_accuracy_function()
+    #             # if accuracy_function is not None and isfunction(accuracy_function):
+    #             #     accuracy = accuracy_function(pred, batch_target)
+    #             # self.logger.info("train_loss: {}, train_acc: {}".format(loss.item(), float(batch_acc) / len(batch_target)))
+    #     model.eval()
+    #     acc = 0
+    #     for idx, (batch_data, batch_target) in enumerate(test_dataloader):
+    #         batch_data, batch_target = batch_data.to(device), batch_target.to(device)
+    #         # print(batch_data.shape)
+    #         pred = model(batch_data)
+    #         # log_pred = torch.log(F.softmax(pred, dim=1))
+    #         test_loss = F.cross_entropy(pred, batch_target.long())
+    #         batch_acc = torch.eq(pred.argmax(dim=1), batch_target).sum().float().item()
+    #         acc += batch_acc
+    #         optimizer.zero_grad()
+    #         test_loss.backward()
+    #         optimizer.step()
+    #
+    #     print("test_loss: {}, test_acc: {}".format(test_loss.item(), float(acc)/len(test_dataset)))

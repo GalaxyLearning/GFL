@@ -96,6 +96,37 @@ class CIFAR10_truncated(data.Dataset):
     def __len__(self):
         return len(self.data)
 
+class MyCIFAR10(data.Dataset):
+
+    def __init__(self, data, target, transform=None, target_transform=None,
+                 download=False):
+        # super(MyCIFAR10, self).__init__(None, transform=transform,
+        #                             target_transform=target_transform)
+        self.data = data
+        self.target = target
+
+    def __getitem__(self, index):
+        """
+        Args:
+            index (int): Index
+        Returns:
+            tuple: (image, target) where target is index of the target class.
+        """
+        img, target = self.data[index], self.target[index]
+
+        if self.transform is not None:
+            img = self.transform(img)
+
+        if self.target_transform is not None:
+            target = self.target_transform(target)
+
+        return img, target
+
+    def __len__(self):
+        return len(self.data)
+
+
+
 def _data_transforms_cifar10():
     CIFAR_MEAN = [0.49139968, 0.48215827, 0.44653124]
     CIFAR_STD = [0.24703233, 0.24348505, 0.26158768]
@@ -131,6 +162,7 @@ def load_cifar10_data(datadir):
 def partition_data(dataset, datadir, partition, n_nets, alpha):
     print("*********partition data***************")
     X_train, y_train, X_test, y_test = load_cifar10_data(datadir)
+    print(X_train.shape)
     n_train = X_train.shape[0]
     # n_test = X_test.shape[0]
 
@@ -183,15 +215,19 @@ def partition_data(dataset, datadir, partition, n_nets, alpha):
     while obj_id < n_nets:
         new_x_train = torch.Tensor(X_train[net_dataidx_map.get(obj_id)])
         new_y_train = torch.Tensor(y_train[net_dataidx_map.get(obj_id)])
+        new_x_train = new_x_train.permute(0,3,1,2)
         train_dataset = torch.utils.data.TensorDataset(new_x_train, new_y_train)
+        # train_dataset = MyCIFAR10(X_train, y_train)
         train_dataset_path = os.path.join("../data","train_dataset_{}".format(obj_id))
         torch.save(train_dataset, train_dataset_path)
         obj_id += 1
     new_x_test = torch.Tensor(X_test)
+    new_x_test = new_x_test.permute(0, 3, 1, 2)
     new_y_test = torch.Tensor(y_test)
     test_dataset = torch.utils.data.TensorDataset(new_x_test, new_y_test)
+    # test_dataset = MyCIFAR10(X_test, y_test)
     test_dataset_path = os.path.join("../data", "test_dataset")
-    print(test_dataset, test_dataset_path)
+    torch.save(test_dataset, test_dataset_path)
 
     return X_train, y_train, X_test, y_test, net_dataidx_map, traindata_cls_counts
 
