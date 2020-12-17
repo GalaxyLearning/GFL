@@ -127,7 +127,7 @@ class TrainNormalStrategy(TrainStrategy):
     TrainNormalStrategy provides traditional training method and some necessary methods
     """
 
-    def __init__(self, job, data, test_data, fed_step, client_id, local_epoch, model, curve):
+    def __init__(self, job, data, test_data, fed_step, client_id, local_epoch, model, curve, device):
         super(TrainNormalStrategy, self).__init__(client_id)
         self.job = job
         self.data = data
@@ -139,6 +139,7 @@ class TrainNormalStrategy(TrainStrategy):
         self.loss_list = []
         self.model = model
         self.curve = curve
+        self.device = device
 
     def train(self):
         pass
@@ -147,7 +148,7 @@ class TrainNormalStrategy(TrainStrategy):
         model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
         model.load_state_dict(global_model_pars)
         model.eval()
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = self.device
         model = model.to(device)
         test_dataloader = torch.utils.data.DataLoader(self.test_data,
                                                            batch_size=self.model.get_train_strategy().get_batch_size(),
@@ -179,7 +180,8 @@ class TrainNormalStrategy(TrainStrategy):
         accuracy = 0
         scheduler = None
         model = train_model.get_model()
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = self.device
         # test_function = train_model.get_train_strategy().get_test_function()
         # if test_function is not None:
         #     test_accuracy, test_loss = test_function(model)
@@ -385,8 +387,8 @@ class TrainDistillationStrategy(TrainNormalStrategy):
     TrainDistillationStrategy provides distillation training method and some necessary methods
     """
 
-    def __init__(self, job, data, test_data, fed_step, client_id, local_epoch, models, curve):
-        super(TrainDistillationStrategy, self).__init__(job, data, test_data, fed_step, client_id,local_epoch, models, curve)
+    def __init__(self, job, data, test_data, fed_step, client_id, local_epoch, models, curve, device):
+        super(TrainDistillationStrategy, self).__init__(job, data, test_data, fed_step, client_id,local_epoch, models, curve, device)
         self.job_model_path = os.path.join(os.path.abspath("."), "res", "models", "models_{}".format(job.get_job_id()))
         # self.test_data = test_data
 
@@ -436,7 +438,7 @@ class TrainDistillationStrategy(TrainNormalStrategy):
         # TODO: transfer training code to c++ and invoked by python using pybind11
         step = 0
         scheduler = None
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = self.device
         model = train_model.get_model()
         model, other_model = model.to(device), copy.deepcopy(model).to(device)
         model.train()
@@ -546,8 +548,8 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
     TrainStandloneDistillationStrategy is responsible for controlling the process of distillation training in standalone mode
     """
 
-    def __init__(self, job, data, test_data, fed_step, client_id, local_epoch, model, curve):
-        super(TrainStandloneDistillationStrategy, self).__init__(job, data, test_data, fed_step, client_id, local_epoch, model, curve)
+    def __init__(self, job, data, test_data, fed_step, client_id, local_epoch, model, curve, device):
+        super(TrainStandloneDistillationStrategy, self).__init__(job, data, test_data, fed_step, client_id, local_epoch, model, curve, device)
         # self.train_model = self._load_job_model(job.get_job_id(), job.get_train_model_class_name())
         self.train_model = model
         self.logger = LoggerFactory.getLogger("TrainStandloneDistillationStrategy", logging.INFO)
@@ -616,7 +618,7 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
 
     def _calc_kl_loss(self, last_global_model, distillation_model_list):
 
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = self.device
 
         num_batch = 0
         last_global_model = last_global_model.to(device)

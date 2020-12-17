@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
     client = FLClient()
     gfl_models = client.get_remote_gfl_models()
-
+    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
     for gfl_model in gfl_models:
         optimizer = torch.optim.SGD(gfl_model.get_model().parameters(), lr=0.001, weight_decay=1e-3)
         train_strategy = TrainStrategy(optimizer=optimizer, batch_size=64, loss_function=LossStrategy.CE_LOSS)

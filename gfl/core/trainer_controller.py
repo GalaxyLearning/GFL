@@ -34,7 +34,7 @@ class TrainerController(object):
 
     def __init__(self, work_mode=WorkModeStrategy.WORKMODE_STANDALONE, models=None, data=None, test_data=None, client_id=0,
                  client_ip="",
-                 client_port=8081, server_url="", curve=False, local_epoch=3, concurrent_num=5):
+                 client_port=8081, server_url="", curve=False, local_epoch=3, concurrent_num=5, device=None):
         self.work_mode = work_mode
         self.data = data
         self.test_data = test_data
@@ -50,6 +50,7 @@ class TrainerController(object):
         self.client_port = str(client_port)
         self.server_url = server_url
         self.curve = curve
+        self.device = device
         self.logger = LoggerFactory.getLogger("TrainerController", logging.INFO)
 
     def start(self):
@@ -91,7 +92,7 @@ class TrainerController(object):
                                                                                                    self.client_id,
                                                                                                    self.local_epoch,
                                                                                                    gfl_model,
-                                                                                                   self.curve)
+                                                                                                   self.curve, self.device)
                 self.run(self.job_train_strategy.get(job.get_job_id()))
 
     def _trainer_mpc_exec(self):
