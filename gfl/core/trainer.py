@@ -59,6 +59,7 @@ class TrainStrategy(object):
         :param label:
         :return:
         """
+        label = label.long()
         if loss_function == LossStrategy.NLL_LOSS:
             loss = F.nll_loss(output, label)
         elif loss_function == LossStrategy.CE_LOSS:
