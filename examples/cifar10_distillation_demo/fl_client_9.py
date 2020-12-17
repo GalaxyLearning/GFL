@@ -5,9 +5,9 @@ from gfl.core.client import FLClient
 from gfl.core.strategy import WorkModeStrategy, TrainStrategy, LossStrategy
 from gfl.core.trainer_controller import TrainerController
 import sys
-sys.path.append(os.path.join(os.path.abspath("."), "utils"))
+sys.path.append(os.path.join(os.path.abspath("utils"), "utils"))
 
-CLIENT_ID = 3
+CLIENT_ID = 9
 
 if __name__ == "__main__":
     # CLIENT_ID = int(sys.argv[1])
