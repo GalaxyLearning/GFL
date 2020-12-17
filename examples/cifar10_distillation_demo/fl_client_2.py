@@ -31,4 +31,4 @@ if __name__ == "__main__":
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     TrainerController(work_mode=WorkModeStrategy.WORKMODE_STANDALONE, models=gfl_models, data=dataset,
                       test_data=test_dataset, client_id=CLIENT_ID,
-                      curve=False, local_epoch=20, concurrent_num=3).start()
+                      curve=False, local_epoch=20, concurrent_num=3, device=device).start()
