@@ -266,7 +266,7 @@ if __name__ == "__main__":
 
     job_manager = JobManager()
     job = job_manager.generate_job(work_mode=strategy.WorkModeStrategy.WORKMODE_STANDALONE,
-                                   fed_strategy=strategy.FederateStrategy.FED_DISTILLATION, epoch=100, model=ResNet56)
+                                   fed_strategy=strategy.FederateStrategy.FED_DISTILLATION, epoch=100, distillation_alpha=0.5, model=ResNet56)
     job_manager.submit_job(job, model)
 
     # train_dataset = torch.load(os.path.join("./data", "train_dataset_0"))
