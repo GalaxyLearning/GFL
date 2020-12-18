@@ -25,7 +25,7 @@ from json.decoder import WHITESPACE
 from gfl.entity.job import Job
 from gfl.core.strategy import TrainStrategy
 
-LOG_FILE = os.path.join(os.path.abspath("."), "log.txt")
+
 
 
 class JobIdCount(object):
@@ -160,10 +160,11 @@ class JobDecoder(json.JSONDecoder):
 class LoggerFactory(object):
 
     @staticmethod
-    def getLogger(name, level):
+    def getLogger(name, client_id, level):
         logger = logging.getLogger(name)
         logger.setLevel(level)
-        file_handler = logging.FileHandler(LOG_FILE)
+        log_file = os.path.join(os.path.abspath("."), "log_{}.txt".format(str(client_id)))
+        file_handler = logging.FileHandler(log_file)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         file_handler.setFormatter(formatter)
         console_handler = logging.StreamHandler()

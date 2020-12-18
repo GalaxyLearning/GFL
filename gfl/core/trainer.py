@@ -494,7 +494,7 @@ class TrainStandloneNormalStrategy(TrainNormalStrategy):
 
     def __init__(self, job, data, test_data, fed_step, client_id, local_epoch, model, curve):
         super(TrainStandloneNormalStrategy, self).__init__(job, data, test_data,  fed_step, client_id, local_epoch, model, curve)
-        self.logger = LoggerFactory.getLogger("TrainStandloneNormalStrategy", logging.INFO)
+        self.logger = LoggerFactory.getLogger("TrainStandloneNormalStrategy", client_id, logging.INFO)
 
     def _create_job_models_dir(self, client_id, job_id):
         model_client_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id),
@@ -552,7 +552,7 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
         super(TrainStandloneDistillationStrategy, self).__init__(job, data, test_data, fed_step, client_id, local_epoch, model, curve, device)
         # self.train_model = self._load_job_model(job.get_job_id(), job.get_train_model_class_name())
         self.train_model = model
-        self.logger = LoggerFactory.getLogger("TrainStandloneDistillationStrategy", logging.INFO)
+        self.logger = LoggerFactory.getLogger("TrainStandloneDistillationStrategy", client_id, logging.INFO)
 
     def _create_dislillation_model_pars_path(self, client_id, job_id):
         distillation_model_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id), "models_{}".format(client_id),
@@ -769,7 +769,7 @@ class TrainMPCNormalStrategy(TrainNormalStrategy):
         self.server_url = server_url
         self.client_ip = client_ip
         self.client_port = client_port
-        self.logger = LoggerFactory.getLogger("TrainMPCNormalStrategy", logging.INFO)
+        self.logger = LoggerFactory.getLogger("TrainMPCNormalStrategy", client_id, logging.INFO)
 
     def train(self):
         while True:
@@ -824,7 +824,7 @@ class TrainMPCDistillationStrategy(TrainDistillationStrategy):
         self.client_ip = client_ip
         self.client_port = client_port
         self.server_url = server_url
-        self.logger = LoggerFactory.getLogger("TrainMPCDistillationStrategy", logging.INFO)
+        self.logger = LoggerFactory.getLogger("TrainMPCDistillationStrategy", client_id, logging.INFO)
 
     def train(self):
         while True:
