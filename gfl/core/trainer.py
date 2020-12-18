@@ -402,12 +402,16 @@ class TrainDistillationStrategy(TrainNormalStrategy):
         job_model_base_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id))
         other_models_pars = []
         connected_clients_num = 0
+        client_distillation_model_path = os.path.join(job_model_base_path, "models_{}".format(self.client_id), "distillation_model_pars")
+        if len(os.listdir(client_distillation_model_path)) >= fed_step:
+            return other_models_pars, 0
         for f in os.listdir(job_model_base_path):
             if f.find("models_") != -1 and int(f.split("_")[-1]) != int(self.client_id):
                 connected_clients_num += 1
                 files = os.listdir(os.path.join(job_model_base_path, f, "tmp_model_pars"))
-                files = sorted(files, key=lambda x: os.path.getmtime(os.path.join(job_model_base_path, f, "tmp_model_pars", x)))
-                if len(files) == 0 or int(files[-1].split("_")[-1]) < fed_step:
+                # files = sorted(files, key=lambda x: os.path.getmtime(os.path.join(job_model_base_path, f, "tmp_model_pars", x)))
+                # if len(files) == 0 or int(files[-1].split("_")[-1]) < fed_step:
+                if len(files) == 0 or len(files) < fed_step:
                     return other_models_pars, 0
                 else:
                     other_models_pars.append(os.path.join(job_model_base_path, f, "tmp_model_pars", files[-1]))
