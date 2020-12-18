@@ -37,7 +37,7 @@ class JobManager(object):
 
     def __init__(self):
         self.job_path = JOB_PATH
-        self.logger = LoggerFactory.getLogger("JobManager", logging.INFO)
+        self.logger = LoggerFactory.getLogger("JobManager", -1, logging.INFO)
 
     def generate_job(self, work_mode=WorkModeStrategy.WORKMODE_STANDALONE,
                      fed_strategy=FederateStrategy.FED_AVG, epoch=0, model=None, distillation_alpha=None, l2_dist=False):

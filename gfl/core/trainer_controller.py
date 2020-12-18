@@ -51,7 +51,7 @@ class TrainerController(object):
         self.server_url = server_url
         self.curve = curve
         self.device = device
-        self.logger = LoggerFactory.getLogger("TrainerController", logging.INFO)
+        self.logger = LoggerFactory.getLogger("TrainerController", self.client_id, logging.INFO)
 
     def start(self):
         if self.work_mode == WorkModeStrategy.WORKMODE_STANDALONE:

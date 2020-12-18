@@ -87,7 +87,7 @@ class FedAvgAggregator(Aggregator):
     def __init__(self, work_mode, job_path, base_model_path):
         super(FedAvgAggregator, self).__init__(work_mode, job_path, base_model_path)
         self.fed_step = {}
-        self.logger = LoggerFactory.getLogger("FedAvgAggregator", logging.INFO)
+        self.logger = LoggerFactory.getLogger("FedAvgAggregator", -1, logging.INFO)
     def aggregate(self):
         """
 
