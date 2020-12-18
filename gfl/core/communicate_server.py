@@ -26,7 +26,7 @@ API_VERSION = "/api/v1"
 JOB_PATH = os.path.join(os.path.abspath("."), "res", "jobs_server")
 BASE_MODEL_PATH = os.path.join(os.path.abspath("."), "res", "models")
 
-logger = LoggerFactory.getLogger(__name__, logging.INFO)
+logger = LoggerFactory.getLogger(__name__, -1, logging.INFO)
 
 app = Flask(__name__)
 

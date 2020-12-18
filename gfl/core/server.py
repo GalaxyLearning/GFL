@@ -31,7 +31,7 @@ class FLServer(object):
 
     def __init__(self):
         super(FLServer, self).__init__()
-        self.logger = LoggerFactory.getLogger("FlServer", logging.INFO)
+        self.logger = LoggerFactory.getLogger("FlServer", -1, logging.INFO)
 
     def start(self):
         pass

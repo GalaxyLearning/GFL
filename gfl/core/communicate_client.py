@@ -21,7 +21,7 @@ app = Flask(__name__)
 
 BASE_MODEL_PATH = os.path.join(os.path.abspath("."), "res", "models")
 
-logger = LoggerFactory.getLogger(__name__, logging.INFO)
+logger = LoggerFactory.getLogger(__name__, -1, logging.INFO)
 
 
 @return_data_decorator
