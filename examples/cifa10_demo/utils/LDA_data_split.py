@@ -183,11 +183,13 @@ def partition_data(dataset, datadir, partition, n_nets, alpha):
     while obj_id < n_nets:
         new_x_train = torch.Tensor(X_train[net_dataidx_map.get(obj_id)])
         new_y_train = torch.Tensor(y_train[net_dataidx_map.get(obj_id)])
+        new_x_train = new_x_train.permute(0, 3, 1, 2)
         train_dataset = torch.utils.data.TensorDataset(new_x_train, new_y_train)
         train_dataset_path = os.path.join("../data","train_dataset_{}".format(obj_id))
         torch.save(train_dataset, train_dataset_path)
         obj_id += 1
     new_x_test = torch.Tensor(X_test)
+    new_x_test = new_x_test.permute(0, 3, 1, 2)
     new_y_test = torch.Tensor(y_test)
     test_dataset = torch.utils.data.TensorDataset(new_x_test, new_y_test)
     test_dataset_path = os.path.join("../data", "test_dataset")
