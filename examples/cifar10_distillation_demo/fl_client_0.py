@@ -23,7 +23,7 @@ if __name__ == "__main__":
     gfl_models = client.get_remote_gfl_models()
 
     for gfl_model in gfl_models:
-        optimizer = torch.optim.SGD(gfl_model.get_model().parameters(), lr=0.001, weight_decay=1e-3)
+        optimizer = torch.optim.SGD(gfl_model.get_model().parameters(), lr=0.01, weight_decay=5e-4)
         train_strategy = TrainStrategy(optimizer=optimizer, batch_size=32, loss_function=LossStrategy.CE_LOSS)
         gfl_model.set_train_strategy(train_strategy)
 
@@ -31,4 +31,4 @@ if __name__ == "__main__":
 
     TrainerController(work_mode=WorkModeStrategy.WORKMODE_STANDALONE, models=gfl_models, data=dataset,
                       test_data=test_dataset, client_id=CLIENT_ID,
-                      curve=False, local_epoch=20, concurrent_num=3, device=device).start()
+                      curve=False, local_epoch=5, concurrent_num=3, device=device).start()
