@@ -251,9 +251,9 @@ def resnet56(class_num, pretrained=False, path=None, **kwargs):
 
 if __name__ == "__main__":
 
-    model = resnet56(10)
+    model = CNN()
 
     job_manager = JobManager()
     job = job_manager.generate_job(work_mode=strategy.WorkModeStrategy.WORKMODE_STANDALONE,
-                                   fed_strategy=strategy.FederateStrategy.FED_AVG, epoch=100, model=resnet56)
+                                   fed_strategy=strategy.FederateStrategy.FED_AVG, epoch=100, model=CNN)
     job_manager.submit_job(job, model)
