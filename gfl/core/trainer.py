@@ -496,8 +496,8 @@ class TrainStandloneNormalStrategy(TrainNormalStrategy):
     TrainStandloneNormalStrategy is responsible for controlling the process of traditional training in standalone mode
     """
 
-    def __init__(self, job, data, test_data, fed_step, client_id, local_epoch, model, curve):
-        super(TrainStandloneNormalStrategy, self).__init__(job, data, test_data,  fed_step, client_id, local_epoch, model, curve)
+    def __init__(self, job, data, test_data, fed_step, client_id, local_epoch, model, curve, device):
+        super(TrainStandloneNormalStrategy, self).__init__(job, data, test_data,  fed_step, client_id, local_epoch, model, curve, device)
         self.logger = LoggerFactory.getLogger("TrainStandloneNormalStrategy", client_id, logging.INFO)
 
     def _create_job_models_dir(self, client_id, job_id):

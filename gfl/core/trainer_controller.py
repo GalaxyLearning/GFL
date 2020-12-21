@@ -85,7 +85,7 @@ class TrainerController(object):
                                                                                              self.client_id,
                                                                                              self.local_epoch,
                                                                                              gfl_model,
-                                                                                             self.curve)
+                                                                                             self.curve, self.device)
                 else:
                     self.job_train_strategy[job.get_job_id()] = TrainStandloneDistillationStrategy(job, self.data, self.test_data,
                                                                                                    self.fed_step,
