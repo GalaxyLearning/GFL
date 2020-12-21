@@ -191,8 +191,9 @@ def partition_data(dataset, datadir, partition, n_nets, alpha):
     new_y_test = torch.Tensor(y_test)
     test_dataset = torch.utils.data.TensorDataset(new_x_test, new_y_test)
     test_dataset_path = os.path.join("../data", "test_dataset")
-    print(test_dataset, test_dataset_path)
-
+    # print(test_dataset, test_dataset_path)
+    # test_dataset_path = os.path.join("../data", "test_dataset")
+    torch.save(test_dataset, test_dataset_path)
     return X_train, y_train, X_test, y_test, net_dataidx_map, traindata_cls_counts
 
 
