@@ -117,7 +117,7 @@ def _data_transforms_cifar100():
 
     return train_transform, valid_transform
 
-def load_cifar10_data(datadir):
+def load_cifar100_data(datadir):
     train_transform, test_transform = _data_transforms_cifar100()
 
     cifar10_train_ds = CIFAR100_truncated(datadir, train=True, download=True, transform=train_transform)
@@ -130,7 +130,7 @@ def load_cifar10_data(datadir):
 
 def partition_data(dataset, datadir, partition, n_nets, alpha):
     print("*********partition data***************")
-    X_train, y_train, X_test, y_test = load_cifar10_data(datadir)
+    X_train, y_train, X_test, y_test = load_cifar100_data(datadir)
     n_train = X_train.shape[0]
     # n_test = X_test.shape[0]
 
