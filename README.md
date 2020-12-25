@@ -290,4 +290,4 @@ if __name__ == "__main__":
 ```
 
 # QRCode
-![imgaes](resource//pictures//GFL_QRcode.jpg)
+![imgaes](resource//pictures//GFL_QRcode2.jpg)
