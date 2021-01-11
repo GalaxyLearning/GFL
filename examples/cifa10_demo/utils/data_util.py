@@ -5,7 +5,6 @@ from torchvision.datasets import utils, MNIST, CIFAR10, CIFAR100, STL10, Fashion
 from torchvision import transforms
 from torch.utils.data import Subset, DataLoader
 from PIL import Image
-import cv2
 
 
 class Data(object):
