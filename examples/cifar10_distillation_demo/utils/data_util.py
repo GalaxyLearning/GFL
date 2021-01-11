@@ -37,9 +37,9 @@ def save_test_dataset(testset):
 def data_split(dataset, split):
     split_num = [int(len(dataset) / split) for _ in range(split)]
     split_cum = torch.tensor(list(split_num)).cumsum(dim=0).tolist()
-    idx_dataset = list(range(len(dataset.targets)))
+    # idx_dataset = list(range(len(dataset.targets)))
     # split by class
-    # idx_dataset = sorted(range(len(dataset.targets)), key=lambda k: dataset.targets[k])
+    idx_dataset = sorted(range(len(dataset.targets)), key=lambda k: dataset.targets[k])
     # split by random
     splited_data = [idx_dataset[off - l:off]
                     for off, l in zip(split_cum, split_num)]
