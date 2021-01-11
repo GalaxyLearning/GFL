@@ -556,7 +556,7 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
         super(TrainStandloneDistillationStrategy, self).__init__(job, data, test_data, fed_step, client_id, local_epoch, model, curve, device)
         # self.train_model = self._load_job_model(job.get_job_id(), job.get_train_model_class_name())
         self.train_model = model
-        self.logger = LoggerFactory.getLogger("TrainStandloneDistillationStrategy", client_id, logging.INFO)
+        self.logger = LoggerFactory.getLogger("TrainStandloneDistillationStrategy", -1, logging.INFO)
 
     def _create_dislillation_model_pars_path(self, client_id, job_id):
         distillation_model_path = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id), "models_{}".format(client_id),
