@@ -123,14 +123,14 @@ def Dataset(dataset):
                                  (0.2023, 0.1994, 0.2010)),
         ])
         if dataset == 'cifar10':
-            trainset = CIFAR10(root="~/data", train=True,
+            trainset = CIFAR10(root="/home/hyf/data", train=True,
                                download=True, transform=tra_trans)
-            testset = CIFAR10(root="~/data", train=False,
+            testset = CIFAR10(root="/home/hyf/data", train=False,
                               download=True, transform=val_trans)
         if dataset == 'cifar100':
-            trainset = CIFAR100(root="~/data", train=True,
+            trainset = CIFAR100(root="/home/hyf/data", train=True,
                                 download=True, transform=tra_trans)
-            testset = CIFAR100(root="~/data", train=False,
+            testset = CIFAR100(root="/home/hyf/data", train=False,
                                download=True, transform=val_trans)
 
     if dataset == 'femnist' or 'mnist' or 'fashonmnist':
@@ -154,11 +154,11 @@ def Dataset(dataset):
                                  (0.2023, 0.1994, 0.2010)),
         ])
         if dataset == 'femnist':
-            trainset = FEMNIST(root='~/data', train=True, download=True, transform=tra_trans)
-            testset = FEMNIST(root='~/data', train=False, download=True, transform=val_trans)
+            trainset = FEMNIST(root='/home/hyf/data', train=True, download=True, transform=tra_trans)
+            testset = FEMNIST(root='/home/hyf/data', train=False, download=True, transform=val_trans)
         if dataset == 'mnist':
-            trainset = MNIST(root='~/data', train=True, download=True, transform=tra_trans)
-            testset = MNIST(root='~/data', train=False, download=True, transform=val_trans)
+            trainset = MNIST(root='/home/hyf/data', train=True, download=True, transform=tra_trans)
+            testset = MNIST(root='/home/hyf/data', train=False, download=True, transform=val_trans)
         if dataset == 'fashonmnist':
             trainset = FashionMNIST(root='~/data', train=True, download=True, transform=tra_trans)
             testset = FashionMNIST(root='~/data', train=False, download=True, transform=val_trans)

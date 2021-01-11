@@ -123,14 +123,14 @@ def Dataset(dataset):
                                  (0.2023, 0.1994, 0.2010)),
         ])
         if dataset == 'cifar10':
-            trainset = CIFAR10(root="~/data", train=True,
+            trainset = CIFAR10(root="/home/hyf/data", train=True,
                                download=True, transform=tra_trans)
-            testset = CIFAR10(root="~/data", train=False,
+            testset = CIFAR10(root="/home/hyf/data", train=False,
                               download=True, transform=val_trans)
         if dataset == 'cifar100':
-            trainset = CIFAR100(root="~/data", train=True,
+            trainset = CIFAR100(root="/home/hyf/data", train=True,
                                 download=True, transform=tra_trans)
-            testset = CIFAR100(root="~/data", train=False,
+            testset = CIFAR100(root="/home/hyf/data", train=False,
                                download=True, transform=val_trans)
 
     if dataset == 'femnist' or 'mnist' or 'fashonmnist':
