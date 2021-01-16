@@ -532,6 +532,7 @@ class TrainStandloneNormalStrategy(TrainNormalStrategy):
                 # if aggregate_file is not None:
                 self.logger.info("load {} parameters".format(aggregate_file))
                 new_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
+                time.sleep(0.5)
                 model_pars = torch.load(aggregate_file)
                 new_model.load_state_dict(model_pars)
                 self._test(model_pars)
@@ -587,6 +588,7 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
         if not os.path.exists(global_model_path):
             return None
         new_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
+        time.sleep(0.5)
         model_pars = torch.load(global_model_path)
         new_model.load_state_dict(model_pars)
         return new_model
