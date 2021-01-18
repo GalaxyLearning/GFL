@@ -585,6 +585,7 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
         global_model_pars_dir = os.path.join(LOCAL_MODEL_BASE_PATH, "models_{}".format(job_id),
                                              "global_models")
         global_model_path = os.path.join(global_model_pars_dir, "global_parameters_{}".format(fed_step))
+        self.logger.info("load {} parameters".format(global_model_path))
         if not os.path.exists(global_model_path):
             return None
         new_model = self._load_job_model(self.job.get_job_id(), self.job.get_train_model_class_name())
