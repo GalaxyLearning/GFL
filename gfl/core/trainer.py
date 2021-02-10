@@ -414,8 +414,8 @@ class TrainDistillationStrategy(TrainNormalStrategy):
                 if len(files) == 0 or len(files) < fed_step:
                     return other_models_pars, 0
                 else:
-                    other_models_pars.append(os.path.join(job_model_base_path, f, "tmp_model_pars", files[-1]))
-        time.sleep(1)
+                    other_models_pars.append(os.path.join(job_model_base_path, f, "tmp_model_pars", "tmp_parameters_{}".format(fed_step)))
+        time.sleep(0.5)
         for i in range(len(other_models_pars)):
             other_models_pars[i] = torch.load(other_models_pars[i])
         return other_models_pars, connected_clients_num+1
