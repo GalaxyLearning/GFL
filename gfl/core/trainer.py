@@ -465,7 +465,7 @@ class TrainDistillationStrategy(TrainNormalStrategy):
                 batch_data = batch_data.to(device)
                 batch_target = batch_target.to(device)
                 kl_pred = model(batch_data)
-                pred = F.log_softmax(kl_pred, dim=1)
+                # pred = F.log_softmax(kl_pred, dim=1)
                 acc += torch.eq(kl_pred.argmax(dim=1), batch_target).sum().float().item()
                 loss_distillation = 0
                 for other_model_pars in other_models_pars:
@@ -481,7 +481,7 @@ class TrainDistillationStrategy(TrainNormalStrategy):
                 loss.backward()
                 optimizer.step()
                 if idx % 200 == 0:
-                    self.logger.info("distillation_loss: {}".format(loss.item()))
+                    self.logger.info("distillation_loss: {}, kl_loss: {}".format(loss.item(), loss_distillation))
                 #     self.logger.info("distillation_loss: {}".format(loss.item()))
             step += 1
             accuracy = acc / len(train_dataloader.dataset)
