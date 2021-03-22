@@ -488,8 +488,8 @@ class TrainDistillationStrategy(TrainNormalStrategy):
                 #     self.logger.info("distillation_loss: {}".format(loss.item()))
             avg_kl_loss = total_kl_loss / num
             step += 1
-            self.logger.info("kl_loss: {}".format(avg_kl_loss))
-            # accuracy = acc / len(train_dataloader.dataset)
+            accuracy = acc / len(train_dataloader.dataset)
+            self.logger.info("kl_loss: {}, acc: {}".format(avg_kl_loss, accuracy))
 
         torch.save(model.state_dict(),
                        os.path.join(distillation_model_path, "tmp_parameters_{}".format(self.fed_step[self.job.get_job_id()] + 1)))
