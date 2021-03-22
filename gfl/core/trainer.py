@@ -460,7 +460,7 @@ class TrainDistillationStrategy(TrainNormalStrategy):
                 scheduler.step()
 
             optimizer = self._generate_new_optimizer(model, train_model.get_train_strategy().get_optimizer())
-            acc = 0
+            other_acc, acc = 0, 0
             num = 0
             total_kl_loss = 0
             for idx, (batch_data, batch_target) in enumerate(train_dataloader):
@@ -473,7 +473,7 @@ class TrainDistillationStrategy(TrainNormalStrategy):
                 for other_model_pars in other_models_pars:
                     other_model.load_state_dict(other_model_pars)
                     other_model_kl_pred = other_model(batch_data).detach()
-
+                    other_acc += torch.eq(other_model_kl_pred.argmax(dim=1), batch_target).sum().float().item()
                     loss_distillation += self._compute_loss(LossStrategy.KLDIV_LOSS, F.log_softmax(kl_pred, dim=1),
                                                                 F.softmax(other_model_kl_pred, dim=1))
                 total_kl_loss += loss_distillation
@@ -489,7 +489,8 @@ class TrainDistillationStrategy(TrainNormalStrategy):
             avg_kl_loss = total_kl_loss / num
             step += 1
             accuracy = acc / len(train_dataloader.dataset)
-            self.logger.info("kl_loss: {}, acc: {}".format(avg_kl_loss, accuracy))
+            other_accuracy = other_acc / len(train_dataloader.dataset)
+            self.logger.info("kl_loss: {}, acc: {}, other_accuracy: {}".format(avg_kl_loss, accuracy, other_accuracy))
 
         torch.save(model.state_dict(),
                        os.path.join(distillation_model_path, "tmp_parameters_{}".format(self.fed_step[self.job.get_job_id()] + 1)))
