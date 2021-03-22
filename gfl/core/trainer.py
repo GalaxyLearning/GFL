@@ -461,6 +461,8 @@ class TrainDistillationStrategy(TrainNormalStrategy):
 
             optimizer = self._generate_new_optimizer(model, train_model.get_train_strategy().get_optimizer())
             acc = 0
+            num = 0
+            total_kl_loss = 0
             for idx, (batch_data, batch_target) in enumerate(train_dataloader):
                 batch_data = batch_data.to(device)
                 batch_target = batch_target.to(device)
@@ -474,22 +476,25 @@ class TrainDistillationStrategy(TrainNormalStrategy):
 
                     loss_distillation += self._compute_loss(LossStrategy.KLDIV_LOSS, F.log_softmax(kl_pred, dim=1),
                                                                 F.softmax(other_model_kl_pred, dim=1))
-
-                loss_s = self._compute_loss(train_model.get_train_strategy().get_loss_function(), kl_pred, batch_target)
-                loss = loss_s + self.job.get_distillation_alpha() * loss_distillation
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-                if idx % 200 == 0:
-                    self.logger.info("distillation_loss: {}, kl_loss: {}".format(loss.item(), loss_distillation))
+                total_kl_loss += loss_distillation
+                num += 1
+                # loss_s = self._compute_loss(train_model.get_train_strategy().get_loss_function(), kl_pred, batch_target)
+                # loss = loss_s + self.job.get_distillation_alpha() * loss_distillation
+                # optimizer.zero_grad()
+                # loss.backward()
+                # optimizer.step()
+                # if idx % 200 == 0:
+                #     self.logger.info("distillation_loss: {}, kl_loss: {}".format(loss.item(), loss_distillation))
                 #     self.logger.info("distillation_loss: {}".format(loss.item()))
+            avg_kl_loss = total_kl_loss / num
             step += 1
-            accuracy = acc / len(train_dataloader.dataset)
+            self.logger.info("kl_loss: {}".format(avg_kl_loss))
+            # accuracy = acc / len(train_dataloader.dataset)
 
         torch.save(model.state_dict(),
                        os.path.join(distillation_model_path, "tmp_parameters_{}".format(self.fed_step[self.job.get_job_id()] + 1)))
-        return accuracy, loss.item()
-
+        # return accuracy, loss.item()
+        return 0, 0
 
 class TrainStandloneNormalStrategy(TrainNormalStrategy):
     """
