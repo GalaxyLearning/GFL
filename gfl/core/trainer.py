@@ -478,19 +478,19 @@ class TrainDistillationStrategy(TrainNormalStrategy):
                                                                 F.softmax(other_model_kl_pred, dim=1))
                 total_kl_loss += loss_distillation
                 num += 1
-                # loss_s = self._compute_loss(train_model.get_train_strategy().get_loss_function(), kl_pred, batch_target)
-                # loss = loss_s + self.job.get_distillation_alpha() * loss_distillation
-                # optimizer.zero_grad()
-                # loss.backward()
-                # optimizer.step()
-                # if idx % 200 == 0:
-                #     self.logger.info("distillation_loss: {}, kl_loss: {}".format(loss.item(), loss_distillation))
-                #     self.logger.info("distillation_loss: {}".format(loss.item()))
-            avg_kl_loss = total_kl_loss / num
+                loss_s = self._compute_loss(train_model.get_train_strategy().get_loss_function(), kl_pred, batch_target)
+                loss = loss_s + self.job.get_distillation_alpha() * loss_distillation
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+                if idx % 200 == 0:
+                    self.logger.info("distillation_loss: {}, kl_loss: {}".format(loss.item(), loss_distillation))
+                    # self.logger.info("distillation_loss: {}".format(loss.item()))
+            # avg_kl_loss = total_kl_loss / num
             step += 1
             accuracy = acc / len(train_dataloader.dataset)
-            other_accuracy = other_acc / len(train_dataloader.dataset)
-            self.logger.info("kl_loss: {}, acc: {}, other_accuracy: {}".format(avg_kl_loss, accuracy, other_accuracy))
+            # other_accuracy = other_acc / len(train_dataloader.dataset)
+            self.logger.info("acc: {}".format(accuracy))
 
         torch.save(model.state_dict(),
                        os.path.join(distillation_model_path, "tmp_parameters_{}".format(self.fed_step[self.job.get_job_id()] + 1)))
@@ -737,6 +737,7 @@ class TrainStandloneDistillationStrategy(TrainDistillationStrategy):
             # self.logger.info("job_{} is training, Aggregator strategy: {}, L2_dist: {}".format(self.job.get_job_id(),
             #                                                                                    self.job.get_aggregate_strategy(),
             #                                                                                    self.job.get_l2_dist()))
+
             if other_model_pars is not None and connected_clients_num:
 
                 self.logger.info("model distillating....")
