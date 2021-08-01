@@ -1,51 +1,46 @@
-# Copyright (c) 2019 GalaxyLearning Authors. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License"
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+import setuptools
 
+with open("README.md", "r", encoding="utf-8") as f:
+    long_description = f.read()
 
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
-from setuptools import find_packages
-from setuptools import setup
-
-setup(
+setuptools.setup(
     name="gfl",
-    version="0.1.1",
-    author="Galaxy Learning Author",
-    author_email="yifan_hu@zju.edu.cn",
+    version="0.2.0",
+    author="malanore",
+    author_email="malanore.z@gmail.com",
     description="A Galaxy Federated Learning Framework",
-    long_description='',
-    license="Apache-2.0",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     url="https://github.com/GalaxyLearning/GFL",
-    packages=find_packages(),
+    project_urls={
+        "Bug Tracker": "https://github.com/GalaxyLearning/GFL/issues"
+    },
     classifiers=[
-        'Intended Audience :: Developers',
-        'Intended Audience :: Education',
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Topic :: Scientific/Engineering',
-        'Topic :: Scientific/Engineering :: Mathematics',
-        'Topic :: Scientific/Engineering :: Artificial Intelligence',
-        'Topic :: Software Development',
-        'Topic :: Software Development :: Libraries',
-        'Topic :: Software Development :: Libraries :: Python Modules',
+        "Intended Audience :: Developers",
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
     ],
-    zip_safe=True,
+    package_dir={"": "src"},
+    package_data={"": ["resources/*"]},
+    packages=setuptools.find_packages(where="src"),
+    python_requires=">=3.4",
+    install_requires=[
+        "web3",
+        "PyYAML",
+        "Flask",
+        "matplotlib",
+        "requests",
+        "requests_toolbelt",
+        "daemoniker==0.2.3",
+        "ipfshttpclient",
+        "numpy",
+        "networkx~=2.5.1"
+    ],
+    extras_requires={
+        "pytorch": [
+            "torch>=1.4.0",
+            "torchvision>=0.5.0"
+        ]
+    }
 )
