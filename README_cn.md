@@ -4,7 +4,7 @@
 
 [English](./README.md) | 简体中文
 
-**Galaxy Federated Learning Framework(GFL)**是一个基于区块链的去中心化联邦学习框架。GFL以Ethereum为基础建立去中心化通信网络，通过智能合约完成联邦学习中要求可信的关键功能。同时，GFL简化了联邦学习建模过程，让开发者可以快速建模和验证。
+**Galaxy Federated Learning Framework(GFL)** 是一个基于区块链的去中心化联邦学习框架。GFL以Ethereum为基础建立去中心化通信网络，通过智能合约完成联邦学习中要求可信的关键功能。同时，GFL简化了联邦学习建模过程，让开发者可以快速建模和验证。
 
 ## 快速开始
 
