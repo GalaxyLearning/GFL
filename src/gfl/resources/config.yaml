@@ -10,7 +10,7 @@ net:
   mode: eth
   eth:
     port: 8545
-    url: 127.0.0.1
+    url: 10.72.100.12
   http:
     listen_port: 9001
     listen_url: 127.0.0.1
@@ -21,4 +21,4 @@ net:
 
 ipfs:
   enabled: false
-  addr: /dns/localhost/tcp/5001/http
+  addr: /dns/10.72.100.12/tcp/5001/http

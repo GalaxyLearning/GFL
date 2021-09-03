@@ -25,7 +25,7 @@ class GflNodeMetadata(type):
 
     @property
     def priv_key(cls):
-        return cls._GflNode_priv_key
+        return cls._GflNode__priv_key
 
 
 class GflNode(object, metaclass=GflNodeMetadata):

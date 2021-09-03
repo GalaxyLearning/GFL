@@ -44,6 +44,18 @@ class NodeManager(object):
             pass
         # release resources
 
+    def get_relative_jobs(self):
+        pass
+
+    def get_all_jobs(self):
+        pass
+
+    def get_job(self, job_id: str):
+        pass
+
+    def sync_job(self, job_id: str):
+        pass
+
     def listen_job(self):
         # 监听job，并将监听到的job保存到waiting_list中
         # 在单机模式下，所有节点共用一个数据库，所以直接调用此方法获取未完成的job

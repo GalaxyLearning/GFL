@@ -27,10 +27,10 @@ app_parser.add_argument("--role", type=str)
 app_parser.add_argument("--console", action="store_true")
 app_parser.add_argument("-D", "--define", dest="props", action="append", type=str)
 
-attach_parser = subparsers.add_parser("attach", help="connect to gfl net")
+attach_parser = subparsers.add_parser("attach", help="connect to gfl node")
 attach_parser.add_argument("--home", type=str)
-attach_parser.add_argument("--host", type=str, default="127.0.0.1")
-attach_parser.add_argument("--port", type=int, default=9434)
+attach_parser.add_argument("-H", "--host", type=str, default="127.0.0.1")
+attach_parser.add_argument("-P", "--port", type=int, default=9434)
 
 
 def detect_homedir(args_home):
