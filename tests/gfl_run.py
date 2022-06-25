@@ -1,7 +1,7 @@
 import os
 
 from gfl.application import Application
-from gfl.conf import GflConf
+from gfl import GflConf
 
 
 GflConf.home_dir = os.path.join(os.path.dirname(__file__), "../data")
