@@ -1,8 +1,29 @@
+#  Copyright 2020 The GFL Authors. All Rights Reserved.
+#  #
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#  #
+#      http://www.apache.org/licenses/LICENSE-2.0
+#  #
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
 
 import psutil
 
 
 class SysUtils(object):
+    """
+    Some methods of query the usage system hardware resources.
+    The following is meaning of some identifier names:
+
+    proc_*: query resources of specified process
+    pid: process id, None means current process
+    index: serial number of cpu or gpu, start from 0
+    """
 
     @classmethod
     def cpu_count(cls, logical=True):
@@ -10,6 +31,9 @@ class SysUtils(object):
 
     @classmethod
     def cpu_percent(cls, index=None):
+        """
+        return the average used percent if index is None or less than 0
+        """
         if index is None or index < 0:
             return psutil.cpu_percent()
         else:
