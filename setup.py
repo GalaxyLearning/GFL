@@ -3,10 +3,6 @@ import setuptools
 with open("README.md", "r", encoding="utf-8") as f:
     long_description = f.read()
 
-with open("requirements.txt", "r", encoding="utf-8") as f:
-    requires = [line.strip() for line in f.readlines()]
-    requires = [r for r in requires if r != ""]
-
 setuptools.setup(
     name="gfl_p",
     version="0.2.0",
@@ -29,7 +25,9 @@ setuptools.setup(
     package_data={"": ["resources/*"]},
     packages=setuptools.find_packages(where="src"),
     python_requires=">=3.6",
-    install_requires=requires,
+    install_requires=[
+
+    ],
     extras_requires={
         "pytorch": [
             "torch>=1.4.0",

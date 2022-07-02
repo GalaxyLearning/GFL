@@ -1,6 +1,1 @@
-
-
-class NodeManager(object):
-
-    def __init__(self):
-        super(NodeManager, self).__init__()
+from gfl.runtime.manager.node_manager import NodeManager

@@ -1,11 +1,6 @@
-import os
-from typing import Union
-
 import hjson
 import yaml
-import zcommons as zc
-
-from .constants import *
+from traits.api import HasTraits, Str, Int, Bool, Instance
 
 
 def _load_dict(path, ext):
@@ -22,63 +17,136 @@ def _check_int_between(_v, _min, _max, msg):
         raise ValueError(f"")
 
 
-class LogConfig(object):
+class LogConfig(HasTraits):
+    level = Str
+    root = Str
 
-    def __init__(self):
+    def __init__(self, config_dict:dict=None):
         super(LogConfig, self).__init__()
-        self.level = None
-        self.path = None
+        if config_dict is None:
+            config_dict = {}
+        self.level = config_dict.get("level", "INFO")
+        self.path = config_dict.get("root", "logs")
+
+    @property
+    def config_dict(self):
+        return {
+            "level": self.level,
+            "root": self.root
+        }
 
 
-class AppConfig(object):
+class HttpRpcConfig(HasTraits):
+    enabled = Bool
+    as_server = Bool
+    server_host = Str
+    server_port = Int
 
-    def __init__(self):
+    def __init__(self, config_dict:dict=None):
+        super(HttpRpcConfig, self).__init__()
+        if config_dict is None:
+            config_dict = {}
+        self.enabled = config_dict.get("enabled", False)
+        self.as_server = config_dict.get("as_server", False)
+        self.server_host = config_dict.get("server_host", "127.0.0.1")
+        self.server_port = config_dict.get("server_port", 10702)
+
+    @property
+    def config_dict(self):
+        return {
+            "enabled": self.enabled,
+            "as_server": self.as_server,
+            "server_host": self.server_host,
+            "server_port": self.server_port
+        }
+
+
+class EthConfig(HasTraits):
+    enabled = Bool
+    eth_host = Str
+    eth_port = Int
+    contract_address = Str
+
+    def __init__(self, config_dict:dict=None):
+        super(EthConfig, self).__init__()
+        if config_dict is None:
+            config_dict = {}
+        self.enabled = config_dict.get("enabled", False)
+        self.eth_host = config_dict.get("eth_host", "127.0.0.1")
+        self.eth_port = config_dict.get("eth_port", 8545)
+        self.contract_address = config_dict.get("contract_address", "")
+
+    @property
+    def config_dict(self):
+        return {
+            "enabled": self.enabled,
+            "eth_host": self.eth_host,
+            "eth_port": self.eth_port,
+            "contract_address": self.contract_address
+        }
+
+
+class NodeConfig(HasTraits):
+    http = Instance(HttpRpcConfig)
+    rpc = Instance(HttpRpcConfig)
+    eth = Instance(EthConfig)
+
+    def __init__(self, config_dict: dict = None):
+        super(NodeConfig, self).__init__()
+        if config_dict is None:
+            config_dict = {}
+        self.http = HttpRpcConfig(config_dict.get("http", {}))
+        self.rpc = HttpRpcConfig(config_dict.get("rpc", {}))
+        self.eth = EthConfig(config_dict.get("eth", {}))
+
+    @property
+    def config_dict(self):
+        return {
+            "http": self.http.config_dict,
+            "rpc": self.rpc.config_dict,
+            "eth": self.eth.config_dict
+        }
+
+
+class AppConfig(HasTraits):
+    shell = Str
+
+    def __init__(self, config_dict):
         super(AppConfig, self).__init__()
-        self.socket_bind_ip = None
-        self.socket_bind_port = None
+        if config_dict is None:
+            config_dict = {}
+        self.shell = config_dict.get("shell", "ipython")
 
-        self.http_enabled = None
-        self.http_webui_enabled = None
-        self.http_bind_ip = None
-        self.http_bind_port = None
-        self.http_allow_cmd = None
-
-        self.shell_type = None
+    @property
+    def config_dict(self):
+        return {
+            "shell": self.shell
+        }
 
 
-class GflConfig(object):
+class GflConfig(HasTraits):
 
-    def __init__(self, config: Union[str, dict] = None):
+    app = Instance(AppConfig)
+    node = Instance(NodeConfig)
+    log = Instance(LogConfig)
+
+    def __init__(self, config_dict: dict = None):
         super(GflConfig, self).__init__()
-        if config is None:
-            self._param_dict = _load_dict(CONFIG_YAML_PATH, "yaml")
-        elif isinstance(config, dict):
-            self._param_dict = config
-        elif os.path.exists(config):
-            self._param_dict = _load_dict(config, "yaml")
-        else:
-            raise ValueError(
-                f"Expected a string path to an existing gfl_p config, or a dict. Received: {config}"
-            )
-        self.__config = zc.Config(self._param_dict)
+        if config_dict is None:
+            config_dict = {}
+        self.app = AppConfig(config_dict.get("app", {}))
+        self.node = NodeConfig(config_dict.get("node", {}))
+        self.log = LogConfig(config_dict.get("log", {}))
 
-        self.log = self.__init_log()
-        self.app = self.__init_app()
+    @property
+    def config_dict(self):
+        return {
+            "app": self.app.config_dict,
+            "node": self.node.config_dict,
+            "log": self.log.config_dict
+        }
 
-    def __init_log(self):
-        log_config = LogConfig()
-        log_config.level = self.__config.get(KEY_LOG_LEVEL, "INFO")
-        log_config.path = self.__config.get(KEY_LOG_PATH, "logs")
-        return log_config
-
-    def __init_app(self):
-        app = AppConfig()
-        app.socket_bind_ip = self.__config.get(KEY_APP_SOCKET_BIND_IP, "127.0.0.1")
-        app.socket_bind_port = self.__config.get(KEY_APP_SOCKET_BIND_PORT, 10701)
-        app.http_enabled = self.__config.get(KEY_APP_HTTP_ENABLED, True)
-        app.http_webui_enabled = self.__config.get(KEY_APP_HTTP_WEBUI_ENABLED, False)
-        app.http_bind_ip = self.__config.get(KEY_APP_HTTP_BIND_IP, "0.0.0.0")
-        app.http_bind_port = self.__config.get(KEY_APP_HTTP_BIND_PORT, 10700)
-        app.http_allow_cmd = self.__config.get(KEY_APP_HTTP_ALLOW_CMD, ["gfl_p", "node"])
-        app.shell_type = self.__config.get(KEY_APP_SHELL_TYPE, "ipython")
-        return app
+    @classmethod
+    def load(cls, path, ext="json"):
+        config_dict = _load_dict(path, ext)
+        return GflConfig(config_dict)

@@ -4,8 +4,7 @@ import shutil
 from ..shell import startup as shell_startup
 from .app import GflApplication
 from .config import GflConfig
-from .constants import GFL_CONFIG_FILENAME
-from .log import init_logging
+from .log import update_logging_config
 from .utils import default_home_path
 
 
@@ -24,14 +23,11 @@ def gfl_init(home,
         home = default_home_path()
     if not gfl_config:
         raise ValueError(f"Expected a config file when init gfl.")
-    if force:
-        __clean(home)
-    os.makedirs(home, exist_ok=True)
-    config = GflConfig(gfl_config)
-    init_logging(config.log.level, os.path.join(home, config.log.path))
+    config = GflConfig.load(gfl_config)
+    update_logging_config(log_level=config.log.level, log_root=os.path.join(home, config.log.root))
 
-    app = GflApplication(home, config)
-    app.init()
+    app = GflApplication(home)
+    app.init(config, overwrite=force)
 
 
 def gfl_start(home,
@@ -40,19 +36,8 @@ def gfl_start(home,
               shell):
     if not home:
         home = default_home_path()
-    config_path = os.path.join(home, GFL_CONFIG_FILENAME)
-    if not os.path.exists(config_path):
-        raise ValueError(f"{home} is not a valid gfl home path.")
-    config = GflConfig(config_path)
-    if no_webui is not None:
-        config.app.http_webui_enabled = no_webui
-    if shell is not None:
-        config.app.shell_type = shell
-    init_logging(config.log.level, os.path.join(home, config.log.path))
 
-    if no_daemon is None:
-        no_daemon = False
-    app = GflApplication(home, config)
+    app = GflApplication(home)
     app.start(not no_daemon)
 
 

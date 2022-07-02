@@ -1,5 +1,4 @@
 __all__ = [
-    "ObjectConfig",
     "JobConfig",
     "TrainConfig",
     "AggregateConfig",
@@ -7,32 +6,22 @@ __all__ = [
 ]
 
 from dataclasses import dataclass
-from typing import Dict, Any
-
-
-@dataclass()
-class ObjectConfig:
-
-    name: str
-    is_builtin: bool = False
-    is_instance: bool = False
-    args: Dict[str, Any] = None
 
 
 @dataclass()
 class JobConfig:
 
-    trainer: ObjectConfig
-    aggregator: ObjectConfig
+    trainer: str
+    aggregator: str
 
 
 @dataclass()
 class TrainConfig:
 
-    model: ObjectConfig
-    optimizer: ObjectConfig
-    criterion: ObjectConfig
-    lr_scheduler: ObjectConfig = None
+    model: str
+    optimizer: str
+    criterion: str
+    lr_scheduler: str = None
     epoch: int = 10
     batch_size: int = 32
 
@@ -46,6 +35,6 @@ class AggregateConfig:
 @dataclass()
 class DatasetConfig:
 
-    dataset: ObjectConfig
-    val_dataset: ObjectConfig = None
+    dataset: str
+    val_dataset: str = None
     val_rate: float = 0.2

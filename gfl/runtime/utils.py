@@ -26,4 +26,4 @@ def check_home(home, is_init, is_attach):
     if not is_init:
         config_path = os.path.join(home, GFL_CONFIG_FILENAME)
         if not os.path.exists(config_path):
-            raise ValueError(f"Cannot find gfl_config.yaml file in gfl_p home path.")
+            raise ValueError(f"Cannot find gfl_config.yaml file in gfl home path.")

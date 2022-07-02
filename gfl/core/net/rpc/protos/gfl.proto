@@ -1,0 +1,126 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+package gfl.core.net.rpc;
+
+message ComputingPower {
+  int32 cpu_utilization = 1;
+  int32 cpu_cores = 2;
+  int32 memory_used = 3;
+  int32 memory_total = 4;
+  int32 gpu_memory_used = 5;
+  int32 gpu_memory_total = 6;
+}
+
+message Health {
+  int32 running_job_count = 1;
+  ComputingPower power = 2;
+}
+
+enum JobStatusEnum {
+  NEW = 0;
+  READY = 1;
+  RUNNING = 2;
+  WAITING = 3;
+  FINISHED = 4;
+  ABORTED = 5;
+}
+
+message JobStatus {
+  JobStatusEnum status = 1;
+}
+
+message JobMeta {
+  string id = 1;
+  string owner = 2;
+  int64 create_time = 3;
+  string content = 4;
+  JobStatusEnum status = 5;
+  repeated string dataset_ids = 6;
+}
+
+message JobMetaList {
+  repeated JobMeta metas = 1;
+}
+
+message Job {
+  JobMeta meta = 1;
+  bytes data = 2;
+}
+
+message DatasetMeta {
+  string id = 1;
+  string owner = 2;
+  int64 create_time = 3;
+  string content = 4;
+
+  enum DatasetType {
+    IMAGE = 0;
+    VIDEO = 1;
+    AUDIO = 2;
+    WORD = 3;
+    STRUCTURE = 4;
+  }
+
+  DatasetType type = 5;
+  int64 size = 6;
+  int32 used_cnt = 7;
+}
+
+message DatasetMetaList {
+  repeated DatasetMeta metas = 1;
+}
+
+message Dataset {
+  DatasetMeta meta = 1;
+  bytes data = 2;
+}
+
+message ModelParams {
+  string job_id = 1;
+  string node_id = 2;
+  int32 step = 3;
+  bytes data = 4;
+}
+
+message JobJoinRequest {
+  string job_id = 1;
+  string node_id = 2;
+  string dataset_id = 3;
+}
+
+message ParamFetchRequest {
+  string job_id = 1;
+  string node_id = 2;
+  int32 step = 3;
+}
+
+service Gfl {
+
+  rpc SendHealth(Health) returns(google.protobuf.BoolValue);
+
+  rpc GetNetComputingPower(google.protobuf.Empty) returns(ComputingPower);
+
+  rpc GetJobComputingPower(google.protobuf.StringValue) returns(ComputingPower);
+
+  rpc FetchJobMetas(JobStatus) returns(JobMetaList);
+
+  rpc FetchJob(google.protobuf.StringValue) returns(Job);
+
+  rpc PushJob(Job) returns(google.protobuf.BoolValue);
+
+  rpc JoinJob(JobJoinRequest) returns(google.protobuf.BoolValue);
+
+  rpc FetchDatasetMetas(google.protobuf.Empty) returns(DatasetMetaList);
+
+  rpc FetchDataset(google.protobuf.StringValue) returns(Dataset);
+
+  rpc PushDataset(Dataset) returns(google.protobuf.BoolValue);
+
+  rpc FetchParams(ParamFetchRequest) returns(ModelParams);
+
+  rpc PushParams(ModelParams) returns(google.protobuf.BoolValue);
+
+}

@@ -1,6 +1,6 @@
 
 
-class JobScheduler(object):
+class Scheduler(object):
 
     def __init__(self):
-        super(JobScheduler, self).__init__()
+        super(Scheduler, self).__init__()
