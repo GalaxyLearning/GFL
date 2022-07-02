@@ -1,5 +1,0 @@
-
-
-class NetCallback(object):
-
-    pass

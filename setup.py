@@ -4,7 +4,7 @@ with open("README.md", "r", encoding="utf-8") as f:
     long_description = f.read()
 
 setuptools.setup(
-    name="gfl",
+    name="gfl_p",
     version="0.2.0",
     author="malanore",
     author_email="malanore.z@gmail.com",
@@ -24,23 +24,19 @@ setuptools.setup(
     package_dir={"": "src"},
     package_data={"": ["resources/*"]},
     packages=setuptools.find_packages(where="src"),
-    python_requires=">=3.4",
+    python_requires=">=3.6",
     install_requires=[
-        "web3",
-        "PyYAML",
-        "Flask",
-        "matplotlib",
-        "requests",
-        "requests_toolbelt",
-        "daemoniker==0.2.3",
-        "ipfshttpclient",
-        "numpy",
-        "networkx~=2.5.1"
+
     ],
     extras_requires={
         "pytorch": [
             "torch>=1.4.0",
             "torchvision>=0.5.0"
+        ]
+    },
+    entry_points={
+        "console_scripts": [
+            "gfl_p=gfl_p.shell.ipython:startup"
         ]
     }
 )

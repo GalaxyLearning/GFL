@@ -17,7 +17,7 @@ b) GFL is based on `Pytorch`, so, `torch>=1.4.0` and `torchvision>=0.5.0` is req
 ### 2. Install
 
 ```shell
-pip install gfl
+pip install gfl_p
 ```
 
 ### 3. Usage
@@ -40,13 +40,13 @@ actions:
 Init GFL node in `datadir` directory.
 
 ```shell
-python -m gfl init --home datadir
+python -m gfl_p init --home datadir
 ```
 
 Start GFL node(start in standalone mode by default). If you need to open console when starting node, use the `--console`` argument.
 
 ```shell
-python -m gfl run --home datadir
+python -m gfl_p run --home datadir
 ```
 
 Open console for operating GFL node. The following three methods can be used to connect to the node started in the previous step.

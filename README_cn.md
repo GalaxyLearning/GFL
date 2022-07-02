@@ -17,7 +17,7 @@ b) GFL基于Pytorch实现模型训练，在使用GFL前需要安装`torch>=1.4.0
 ### 2. GFL安装
 
 ```shell
-pip install gfl
+pip install gfl_p
 ```
 
 ### 3. GFL用法
@@ -40,13 +40,13 @@ actions:
 在datadir目录下初始化GFL节点。
 
 ```shell
-python -m gfl init --home datadir
+python -m gfl_p init --home datadir
 ```
 
 启动节点（默认以standalone模式启动），如果需要在启动节点的同时打开交互式命令行，使用`--console`参数。
 
 ```shell
-python -m gfl run --home datadir
+python -m gfl_p run --home datadir
 ```
 
 打开交互式命令行以对节点执行操作。以下三种方式都可以连接到上一步中启动的节点。
