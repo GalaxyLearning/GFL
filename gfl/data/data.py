@@ -13,8 +13,8 @@
 #  limitations under the License.
 
 __all__ = [
-    "Job",
-    "Dataset"
+    "JobData",
+    "DatasetData"
 ]
 
 from dataclasses import dataclass
@@ -24,7 +24,7 @@ from .meta import *
 
 
 @dataclass()
-class Job:
+class JobData:
 
     meta: JobMeta
     job_config: JobConfig
@@ -33,7 +33,7 @@ class Job:
 
 
 @dataclass()
-class Dataset:
+class DatasetData:
 
     meta: DatasetMeta
     dataset_config: DatasetConfig

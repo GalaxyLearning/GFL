@@ -13,8 +13,13 @@
 #  limitations under the License.
 
 import argparse
+import logging
+import time
 
 from .action import gfl_init, gfl_start, gfl_attach
+
+
+logger = logging.getLogger("gfl.runtime")
 
 
 def parse_args(args=None):
@@ -24,13 +29,6 @@ def parse_args(args=None):
     init_parser = subparsers.add_parser("init", help="init gfl env")
     init_parser.add_argument("--home", type=str, required=False, help="gfl home directory")
     init_parser.add_argument("--gfl-config", "--gfl_config", type=str, required=False, help="gfl config file path")
-    init_parser.add_argument("--mode", type=str, required=False, help="node communication mode")
-    init_parser.add_argument("--as-http-server", action="store_true", help="make this node as http server")
-    init_parser.add_argument("--http-ip", type=str, default="127.0.0.1", required=False, help="http server ip")
-    init_parser.add_argument("--http-port", type=int, default=10700, required=True, help="http server port")
-    init_parser.add_argument("--init-eth", action="store_true", help="deploy contracts")
-    init_parser.add_argument("--eth-ip", type=str, default="127.0.0.1", required=False, help="eth node ip")
-    init_parser.add_argument("--eth-port", type=int, default=8545, required=False, help="eth node port")
     init_parser.add_argument("--force", action="store_true", help="overwrite exists directory")
 
     start_parser = subparsers.add_parser("start", help="start gfl node")

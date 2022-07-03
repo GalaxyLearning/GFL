@@ -18,7 +18,6 @@ import shutil
 from ..shell import startup as shell_startup
 from .app import GflApplication
 from .config import GflConfig
-from .log import update_logging_config
 from .utils import default_home_path
 
 
@@ -38,7 +37,6 @@ def gfl_init(home,
     if not gfl_config:
         raise ValueError(f"Expected a config file when init gfl.")
     config = GflConfig.load(gfl_config)
-    update_logging_config(log_level=config.log.level, log_root=os.path.join(home, config.log.root))
 
     app = GflApplication(home)
     app.init(config, overwrite=force)

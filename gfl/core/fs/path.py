@@ -142,6 +142,8 @@ class Path(object):
     def __init__(self, home):
         super(Path, self).__init__()
         self.__home = os.path.abspath(home)
+        self.__pid_file = os.path.join(self.__home, "proc.pid")
+        self.__sqlite_file = os.path.join(self.__home, "node.sqlite")
         self.__config_file = os.path.join(self.__home, "config.json")
         self.__key_file = os.path.join(self.__home, "key.json")
         self.__data_dir = os.path.join(self.__home, "data")
@@ -152,6 +154,14 @@ class Path(object):
     @path_like
     def home(self):
         return self.__home
+
+    @path_like
+    def pid_file(self):
+        return self.__pid_file
+
+    @path_like
+    def sqlite_file(self):
+        return self.__sqlite_file
 
     @path_like
     def config_file(self):
