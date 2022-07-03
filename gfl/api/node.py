@@ -12,8 +12,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-import gfl.env_detect
+from gfl.core.fs import FS
+from gfl.core.node import GflNode
 
 
-def __version__():
-    return "0.2.0"
+class Node(object):
+
+    def __init__(self, home):
+        super(Node, self).__init__()
+        self.__fs = FS(home)
+        self.__gfl_node = GflNode.load_node(self.__fs.path.key_file())

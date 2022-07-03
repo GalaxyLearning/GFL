@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-import hjson
+import json
 import yaml
 from traits.api import HasTraits, Str, Int, Bool, Instance
 
@@ -21,7 +21,8 @@ def _load_dict(path, ext):
     if ext == "yaml":
         return yaml.load(path, Loader=yaml.SafeLoader)
     elif ext == "json":
-        return hjson.load(path, encoding="utf8")
+        with open(path) as f:
+            return json.loads(f.read(), encoding="utf8")
     else:
         raise ValueError(f"Expected yaml or json ext. Received: {ext}")
 
@@ -55,6 +56,7 @@ class HttpRpcConfig(HasTraits):
     as_server = Bool
     server_host = Str
     server_port = Int
+    max_workers = Int
 
     def __init__(self, config_dict:dict=None):
         super(HttpRpcConfig, self).__init__()
@@ -64,6 +66,7 @@ class HttpRpcConfig(HasTraits):
         self.as_server = config_dict.get("as_server", False)
         self.server_host = config_dict.get("server_host", "127.0.0.1")
         self.server_port = config_dict.get("server_port", 10702)
+        self.max_workers = config_dict.get("max_workers", 3)
 
     @property
     def config_dict(self):
@@ -159,6 +162,10 @@ class GflConfig(HasTraits):
             "node": self.node.config_dict,
             "log": self.log.config_dict
         }
+
+    def save(self, path):
+        with open(path, "w") as f:
+            f.write(json.dumps(self.config_dict, indent=4))
 
     @classmethod
     def load(cls, path, ext="json"):

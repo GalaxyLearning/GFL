@@ -12,8 +12,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+import base64
 import json
-from typing import AnyStr
 
 import ecies
 from eth_account.messages import encode_defunct
@@ -43,6 +43,28 @@ def _set_global_node(node: "GflNode"):
     __global_node = node
 
 
+def encode(bs: bytes, encoding: str):
+    if encoding == "bytes":
+        return bs
+    elif encoding == "base64":
+        return base64.b64encode(bs)
+    elif encoding == "hex":
+        return bs.hex().encode("ascii")
+    else:
+        raise ValueError(f"Unsupported encoding({encoding})")
+
+
+def decode(bs, encoding: str) -> bytes:
+    if encoding == "bytes":
+        return bs
+    elif encoding == "base64":
+        return base64.b64decode(bs)
+    elif encoding == "hex":
+        return bytes.fromhex(bs.decode("ascii"))
+    else:
+        raise ValueError(f"Unsupported encoding({encoding})")
+
+
 def _get_global_node() -> "GflNode":
     global __global_node
     return __global_node
@@ -68,21 +90,19 @@ class GflNode(object):
     def priv_key(self):
         return self.__priv_key
 
-    def sign(self, message: AnyStr) -> str:
+    def sign(self, message: bytes) -> str:
         """
 
         :param message:
         :return:
         """
-        if type(message) == str:
-            message = message.encode("utf8")
         if type(message) != bytes:
-            raise TypeError("message only support str or bytes.")
+            raise TypeError("message must be bytes.")
         encoded_message = encode_defunct(hexstr=message.hex())
         signed_message = w3.eth.account.sign_message(encoded_message, self.__priv_key)
         return signed_message.signature.hex()
 
-    def recover(self, message: AnyStr, signature: str) -> str:
+    def recover(self, message: bytes, signature: str) -> str:
         """
         Get the address of the manager that signed the given message.
 
@@ -90,14 +110,14 @@ class GflNode(object):
         :param signature: the signature of the message
         :return: the address of the manager
         """
-        if type(message) == str:
-            message = message.encode("utf8")
+        if self.__priv_key is None:
+            raise ValueError(f"private key is None")
         if type(message) != bytes:
-            raise TypeError("message only support str or bytes.")
+            raise TypeError("message must be bytes.")
         encoded_message = encode_defunct(message)
         return w3.eth.account.recover_message(encoded_message, signature=signature)
 
-    def verify(self, message: AnyStr, signature: str, source_address: str) -> bool:
+    def verify(self, message: bytes, signature: str, source_address: str) -> bool:
         """
         Verify whether the message is signed by source address
 
@@ -109,29 +129,32 @@ class GflNode(object):
         rec_addr = self.recover(message, signature)
         return rec_addr[2:].lower() == source_address.lower()
 
-    def encrypt(self, plain: AnyStr) -> bytes:
+    def encrypt(self, plain: bytes, encoding="hex") -> bytes:
         """
         Encrypt with receiver's public key
 
         :param plain: data to encrypt
+        :param encoding: the encoding type of encrypted data, only can be 'bytes', 'base64', or 'hex'
         :return: encrypted data
         """
-        if type(plain) == str:
-            plain = plain.encode("utf8")
         if type(plain) != bytes:
-            raise TypeError("message only support str or bytes.")
+            raise TypeError("message must be bytes.")
         cipher = ecies.encrypt(self.__pub_key, plain)
-        return cipher
+        return encode(cipher, encoding)
 
-    def decrypt(self, cipher: bytes) -> bytes:
+    def decrypt(self, cipher: bytes, encoding="hex") -> bytes:
         """
         Decrypt with private key
 
-        :param cipher:
+        :param cipher: encrypted data
+        :param encoding: the encoding type of encrypted data, only can be 'bytes', 'base64', or 'hex'
         :return:
         """
+        if self.__priv_key is None:
+            raise ValueError(f"private key is None")
         if type(cipher) != bytes:
             raise TypeError("cipher only support bytes.")
+        cipher = decode(cipher, encoding)
         return ecies.decrypt(self.__priv_key, cipher)
 
     def as_alobal(self):
