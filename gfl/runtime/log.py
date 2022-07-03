@@ -40,7 +40,7 @@ class ColorFilter(Filter):
         return True
 
 
-def logging_config(log_level="INFO", log_root="logs", color=True):
+def logging_config(log_level="INFO", log_root="logs", color=True, terminal_only=False):
     if isinstance(log_level, int):
         log_level = {
             logging.DEBUG: "DEBUG",
@@ -51,26 +51,18 @@ def logging_config(log_level="INFO", log_root="logs", color=True):
             logging.CRITICAL: "CRITICAL"
         }[log_level]
     log_root = os.path.abspath(log_root)
-    return {
-        "version": 1,
-        "formatters": {
-            "common": {
-                "format": "%(asctime)s %(process)5d %(name)16s [%(levelname)-5s] %(message)s"
-            }
-        },
-        "filters": {
-            "color": {
-                "()": ColorFilter
-            }
-        },
-        "handlers": {
-            "console": {
-                "class": "logging.StreamHandler",
-                "level": "INFO",
-                "formatter": "common",
-                "stream": "ext://sys.stdout",
-                "filters": ["color"] if color else []
-            },
+
+    handlers = {
+        "console": {
+            "class": "logging.StreamHandler",
+            "level": "INFO",
+            "formatter": "common",
+            "stream": "ext://sys.stdout",
+            "filters": ["color"] if color else []
+        }
+    }
+    if not terminal_only:
+        handlers.update({
             "file": {
                 "class": "logging.FileHandler",
                 "level": "INFO",
@@ -89,24 +81,43 @@ def logging_config(log_level="INFO", log_root="logs", color=True):
                 "formatter": "common",
                 "filename": os.path.join(log_root, "error.log")
             }
-        },
-        "loggers": {
-            "gfl": {
-                "level": log_level,
-                "handlers": ["console", "file"],
-                "propagate": "no"
-            },
+        })
+
+    loggers = {
+        "gfl": {
+            "level": log_level,
+            "handlers": ["console", "file"] if not terminal_only else ["console"],
+            "propagate": "no"
+        }
+    }
+    if not terminal_only:
+        loggers.update({
             "fedflow.core": {
                 "level": log_level,
                 "handlers": ["core"],
                 "propagate": "yes"
             }
-        }
+        })
+
+    return {
+        "version": 1,
+        "formatters": {
+            "common": {
+                "format": "%(asctime)s %(process)5d %(name)16s [%(levelname)-5s] %(message)s"
+            }
+        },
+        "filters": {
+            "color": {
+                "()": ColorFilter
+            }
+        },
+        "handlers": handlers,
+        "loggers": loggers
     }
 
 
-def update_logging_config(log_level="INFO", log_root="logs", color=True):
-    config = logging_config(log_level, log_root, color)
+def update_logging_config(log_level="INFO", log_root="logs", color=True, terminal_only=False):
+    config = logging_config(log_level, log_root, color, terminal_only)
     logging.config.dictConfig(config)
 
 
@@ -122,4 +133,4 @@ def set_color(use_color):
     update_logging_config(color=use_color)
 
 
-update_logging_config()
+update_logging_config(terminal_only=True)

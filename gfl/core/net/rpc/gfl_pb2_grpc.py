@@ -2,7 +2,8 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from gfl.core.net.rpc import gfl_pb2 as gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2
+from gfl.core import data_pb2 as gfl_dot_core_dot_data__pb2
+from gfl.core.net.rpc import gfl_pb2 as gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2
 from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 from google.protobuf import wrappers_pb2 as google_dot_protobuf_dot_wrappers__pb2
 
@@ -16,70 +17,92 @@ class GflStub(object):
         Args:
             channel: A grpc.Channel.
         """
+        self.SendNodeInfo = channel.unary_unary(
+                '/gfl.core.net.rpc.Gfl/SendNodeInfo',
+                request_serializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.NodeInfo.SerializeToString,
+                response_deserializer=google_dot_protobuf_dot_wrappers__pb2.BoolValue.FromString,
+                )
+        self.GetPubKey = channel.unary_unary(
+                '/gfl.core.net.rpc.Gfl/GetPubKey',
+                request_serializer=google_dot_protobuf_dot_wrappers__pb2.StringValue.SerializeToString,
+                response_deserializer=google_dot_protobuf_dot_wrappers__pb2.StringValue.FromString,
+                )
         self.SendHealth = channel.unary_unary(
-                '/Gfl/SendHealth',
-                request_serializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.Health.SerializeToString,
+                '/gfl.core.net.rpc.Gfl/SendHealth',
+                request_serializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.Health.SerializeToString,
                 response_deserializer=google_dot_protobuf_dot_wrappers__pb2.BoolValue.FromString,
                 )
         self.GetNetComputingPower = channel.unary_unary(
-                '/Gfl/GetNetComputingPower',
+                '/gfl.core.net.rpc.Gfl/GetNetComputingPower',
                 request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
-                response_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.ComputingPower.FromString,
+                response_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.ComputingPower.FromString,
                 )
         self.GetJobComputingPower = channel.unary_unary(
-                '/Gfl/GetJobComputingPower',
+                '/gfl.core.net.rpc.Gfl/GetJobComputingPower',
                 request_serializer=google_dot_protobuf_dot_wrappers__pb2.StringValue.SerializeToString,
-                response_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.ComputingPower.FromString,
+                response_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.ComputingPower.FromString,
                 )
         self.FetchJobMetas = channel.unary_unary(
-                '/Gfl/FetchJobMetas',
-                request_serializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.JobStatus.SerializeToString,
-                response_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.JobMetaList.FromString,
+                '/gfl.core.net.rpc.Gfl/FetchJobMetas',
+                request_serializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.JobStatus.SerializeToString,
+                response_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.JobMetaList.FromString,
                 )
         self.FetchJob = channel.unary_unary(
-                '/Gfl/FetchJob',
+                '/gfl.core.net.rpc.Gfl/FetchJob',
                 request_serializer=google_dot_protobuf_dot_wrappers__pb2.StringValue.SerializeToString,
-                response_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.Job.FromString,
+                response_deserializer=gfl_dot_core_dot_data__pb2.JobData.FromString,
                 )
         self.PushJob = channel.unary_unary(
-                '/Gfl/PushJob',
-                request_serializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.Job.SerializeToString,
+                '/gfl.core.net.rpc.Gfl/PushJob',
+                request_serializer=gfl_dot_core_dot_data__pb2.JobData.SerializeToString,
                 response_deserializer=google_dot_protobuf_dot_wrappers__pb2.BoolValue.FromString,
                 )
         self.JoinJob = channel.unary_unary(
-                '/Gfl/JoinJob',
-                request_serializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.JobJoinRequest.SerializeToString,
+                '/gfl.core.net.rpc.Gfl/JoinJob',
+                request_serializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.JobJoinRequest.SerializeToString,
                 response_deserializer=google_dot_protobuf_dot_wrappers__pb2.BoolValue.FromString,
                 )
         self.FetchDatasetMetas = channel.unary_unary(
-                '/Gfl/FetchDatasetMetas',
+                '/gfl.core.net.rpc.Gfl/FetchDatasetMetas',
                 request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
-                response_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.DatasetMetaList.FromString,
+                response_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.DatasetMetaList.FromString,
                 )
         self.FetchDataset = channel.unary_unary(
-                '/Gfl/FetchDataset',
+                '/gfl.core.net.rpc.Gfl/FetchDataset',
                 request_serializer=google_dot_protobuf_dot_wrappers__pb2.StringValue.SerializeToString,
-                response_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.Dataset.FromString,
+                response_deserializer=gfl_dot_core_dot_data__pb2.DatasetData.FromString,
                 )
         self.PushDataset = channel.unary_unary(
-                '/Gfl/PushDataset',
-                request_serializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.Dataset.SerializeToString,
+                '/gfl.core.net.rpc.Gfl/PushDataset',
+                request_serializer=gfl_dot_core_dot_data__pb2.DatasetData.SerializeToString,
                 response_deserializer=google_dot_protobuf_dot_wrappers__pb2.BoolValue.FromString,
                 )
         self.FetchParams = channel.unary_unary(
-                '/Gfl/FetchParams',
-                request_serializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.ParamFetchRequest.SerializeToString,
-                response_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.ModelParams.FromString,
+                '/gfl.core.net.rpc.Gfl/FetchParams',
+                request_serializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.ParamsFetchRequest.SerializeToString,
+                response_deserializer=gfl_dot_core_dot_data__pb2.ModelParams.FromString,
                 )
         self.PushParams = channel.unary_unary(
-                '/Gfl/PushParams',
-                request_serializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.ModelParams.SerializeToString,
+                '/gfl.core.net.rpc.Gfl/PushParams',
+                request_serializer=gfl_dot_core_dot_data__pb2.ModelParams.SerializeToString,
                 response_deserializer=google_dot_protobuf_dot_wrappers__pb2.BoolValue.FromString,
                 )
 
 
 class GflServicer(object):
     """Missing associated documentation comment in .proto file."""
+
+    def SendNodeInfo(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetPubKey(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
 
     def SendHealth(self, request, context):
         """Missing associated documentation comment in .proto file."""
@@ -156,75 +179,119 @@ class GflServicer(object):
 
 def add_GflServicer_to_server(servicer, server):
     rpc_method_handlers = {
+            'SendNodeInfo': grpc.unary_unary_rpc_method_handler(
+                    servicer.SendNodeInfo,
+                    request_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.NodeInfo.FromString,
+                    response_serializer=google_dot_protobuf_dot_wrappers__pb2.BoolValue.SerializeToString,
+            ),
+            'GetPubKey': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetPubKey,
+                    request_deserializer=google_dot_protobuf_dot_wrappers__pb2.StringValue.FromString,
+                    response_serializer=google_dot_protobuf_dot_wrappers__pb2.StringValue.SerializeToString,
+            ),
             'SendHealth': grpc.unary_unary_rpc_method_handler(
                     servicer.SendHealth,
-                    request_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.Health.FromString,
+                    request_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.Health.FromString,
                     response_serializer=google_dot_protobuf_dot_wrappers__pb2.BoolValue.SerializeToString,
             ),
             'GetNetComputingPower': grpc.unary_unary_rpc_method_handler(
                     servicer.GetNetComputingPower,
                     request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
-                    response_serializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.ComputingPower.SerializeToString,
+                    response_serializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.ComputingPower.SerializeToString,
             ),
             'GetJobComputingPower': grpc.unary_unary_rpc_method_handler(
                     servicer.GetJobComputingPower,
                     request_deserializer=google_dot_protobuf_dot_wrappers__pb2.StringValue.FromString,
-                    response_serializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.ComputingPower.SerializeToString,
+                    response_serializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.ComputingPower.SerializeToString,
             ),
             'FetchJobMetas': grpc.unary_unary_rpc_method_handler(
                     servicer.FetchJobMetas,
-                    request_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.JobStatus.FromString,
-                    response_serializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.JobMetaList.SerializeToString,
+                    request_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.JobStatus.FromString,
+                    response_serializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.JobMetaList.SerializeToString,
             ),
             'FetchJob': grpc.unary_unary_rpc_method_handler(
                     servicer.FetchJob,
                     request_deserializer=google_dot_protobuf_dot_wrappers__pb2.StringValue.FromString,
-                    response_serializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.Job.SerializeToString,
+                    response_serializer=gfl_dot_core_dot_data__pb2.JobData.SerializeToString,
             ),
             'PushJob': grpc.unary_unary_rpc_method_handler(
                     servicer.PushJob,
-                    request_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.Job.FromString,
+                    request_deserializer=gfl_dot_core_dot_data__pb2.JobData.FromString,
                     response_serializer=google_dot_protobuf_dot_wrappers__pb2.BoolValue.SerializeToString,
             ),
             'JoinJob': grpc.unary_unary_rpc_method_handler(
                     servicer.JoinJob,
-                    request_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.JobJoinRequest.FromString,
+                    request_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.JobJoinRequest.FromString,
                     response_serializer=google_dot_protobuf_dot_wrappers__pb2.BoolValue.SerializeToString,
             ),
             'FetchDatasetMetas': grpc.unary_unary_rpc_method_handler(
                     servicer.FetchDatasetMetas,
                     request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
-                    response_serializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.DatasetMetaList.SerializeToString,
+                    response_serializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.DatasetMetaList.SerializeToString,
             ),
             'FetchDataset': grpc.unary_unary_rpc_method_handler(
                     servicer.FetchDataset,
                     request_deserializer=google_dot_protobuf_dot_wrappers__pb2.StringValue.FromString,
-                    response_serializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.Dataset.SerializeToString,
+                    response_serializer=gfl_dot_core_dot_data__pb2.DatasetData.SerializeToString,
             ),
             'PushDataset': grpc.unary_unary_rpc_method_handler(
                     servicer.PushDataset,
-                    request_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.Dataset.FromString,
+                    request_deserializer=gfl_dot_core_dot_data__pb2.DatasetData.FromString,
                     response_serializer=google_dot_protobuf_dot_wrappers__pb2.BoolValue.SerializeToString,
             ),
             'FetchParams': grpc.unary_unary_rpc_method_handler(
                     servicer.FetchParams,
-                    request_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.ParamFetchRequest.FromString,
-                    response_serializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.ModelParams.SerializeToString,
+                    request_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.ParamsFetchRequest.FromString,
+                    response_serializer=gfl_dot_core_dot_data__pb2.ModelParams.SerializeToString,
             ),
             'PushParams': grpc.unary_unary_rpc_method_handler(
                     servicer.PushParams,
-                    request_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.ModelParams.FromString,
+                    request_deserializer=gfl_dot_core_dot_data__pb2.ModelParams.FromString,
                     response_serializer=google_dot_protobuf_dot_wrappers__pb2.BoolValue.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'Gfl', rpc_method_handlers)
+            'gfl.core.net.rpc.Gfl', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
  # This class is part of an EXPERIMENTAL API.
 class Gfl(object):
     """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def SendNodeInfo(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/gfl.core.net.rpc.Gfl/SendNodeInfo',
+            gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.NodeInfo.SerializeToString,
+            google_dot_protobuf_dot_wrappers__pb2.BoolValue.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetPubKey(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/gfl.core.net.rpc.Gfl/GetPubKey',
+            google_dot_protobuf_dot_wrappers__pb2.StringValue.SerializeToString,
+            google_dot_protobuf_dot_wrappers__pb2.StringValue.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def SendHealth(request,
@@ -237,8 +304,8 @@ class Gfl(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/Gfl/SendHealth',
-            gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.Health.SerializeToString,
+        return grpc.experimental.unary_unary(request, target, '/gfl.core.net.rpc.Gfl/SendHealth',
+            gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.Health.SerializeToString,
             google_dot_protobuf_dot_wrappers__pb2.BoolValue.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
@@ -254,9 +321,9 @@ class Gfl(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/Gfl/GetNetComputingPower',
+        return grpc.experimental.unary_unary(request, target, '/gfl.core.net.rpc.Gfl/GetNetComputingPower',
             google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
-            gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.ComputingPower.FromString,
+            gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.ComputingPower.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -271,9 +338,9 @@ class Gfl(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/Gfl/GetJobComputingPower',
+        return grpc.experimental.unary_unary(request, target, '/gfl.core.net.rpc.Gfl/GetJobComputingPower',
             google_dot_protobuf_dot_wrappers__pb2.StringValue.SerializeToString,
-            gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.ComputingPower.FromString,
+            gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.ComputingPower.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -288,9 +355,9 @@ class Gfl(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/Gfl/FetchJobMetas',
-            gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.JobStatus.SerializeToString,
-            gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.JobMetaList.FromString,
+        return grpc.experimental.unary_unary(request, target, '/gfl.core.net.rpc.Gfl/FetchJobMetas',
+            gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.JobStatus.SerializeToString,
+            gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.JobMetaList.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -305,9 +372,9 @@ class Gfl(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/Gfl/FetchJob',
+        return grpc.experimental.unary_unary(request, target, '/gfl.core.net.rpc.Gfl/FetchJob',
             google_dot_protobuf_dot_wrappers__pb2.StringValue.SerializeToString,
-            gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.Job.FromString,
+            gfl_dot_core_dot_data__pb2.JobData.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -322,8 +389,8 @@ class Gfl(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/Gfl/PushJob',
-            gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.Job.SerializeToString,
+        return grpc.experimental.unary_unary(request, target, '/gfl.core.net.rpc.Gfl/PushJob',
+            gfl_dot_core_dot_data__pb2.JobData.SerializeToString,
             google_dot_protobuf_dot_wrappers__pb2.BoolValue.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
@@ -339,8 +406,8 @@ class Gfl(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/Gfl/JoinJob',
-            gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.JobJoinRequest.SerializeToString,
+        return grpc.experimental.unary_unary(request, target, '/gfl.core.net.rpc.Gfl/JoinJob',
+            gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.JobJoinRequest.SerializeToString,
             google_dot_protobuf_dot_wrappers__pb2.BoolValue.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
@@ -356,9 +423,9 @@ class Gfl(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/Gfl/FetchDatasetMetas',
+        return grpc.experimental.unary_unary(request, target, '/gfl.core.net.rpc.Gfl/FetchDatasetMetas',
             google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
-            gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.DatasetMetaList.FromString,
+            gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.DatasetMetaList.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -373,9 +440,9 @@ class Gfl(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/Gfl/FetchDataset',
+        return grpc.experimental.unary_unary(request, target, '/gfl.core.net.rpc.Gfl/FetchDataset',
             google_dot_protobuf_dot_wrappers__pb2.StringValue.SerializeToString,
-            gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.Dataset.FromString,
+            gfl_dot_core_dot_data__pb2.DatasetData.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -390,8 +457,8 @@ class Gfl(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/Gfl/PushDataset',
-            gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.Dataset.SerializeToString,
+        return grpc.experimental.unary_unary(request, target, '/gfl.core.net.rpc.Gfl/PushDataset',
+            gfl_dot_core_dot_data__pb2.DatasetData.SerializeToString,
             google_dot_protobuf_dot_wrappers__pb2.BoolValue.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
@@ -407,9 +474,9 @@ class Gfl(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/Gfl/FetchParams',
-            gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.ParamFetchRequest.SerializeToString,
-            gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.ModelParams.FromString,
+        return grpc.experimental.unary_unary(request, target, '/gfl.core.net.rpc.Gfl/FetchParams',
+            gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.ParamsFetchRequest.SerializeToString,
+            gfl_dot_core_dot_data__pb2.ModelParams.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -424,8 +491,8 @@ class Gfl(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/Gfl/PushParams',
-            gfl_dot_core_dot_net_dot_rpc_dot_protos_dot_gfl__pb2.ModelParams.SerializeToString,
+        return grpc.experimental.unary_unary(request, target, '/gfl.core.net.rpc.Gfl/PushParams',
+            gfl_dot_core_dot_data__pb2.ModelParams.SerializeToString,
             google_dot_protobuf_dot_wrappers__pb2.BoolValue.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
