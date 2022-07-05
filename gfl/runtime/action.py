@@ -34,9 +34,10 @@ def gfl_init(home,
              force):
     if not home:
         home = default_home_path()
-    if not gfl_config:
-        raise ValueError(f"Expected a config file when init gfl.")
-    config = GflConfig.load(gfl_config)
+    if gfl_config is None or gfl_config == "":
+        config = GflConfig()
+    else:
+        config = GflConfig.load(gfl_config)
 
     app = GflApplication(home)
     app.init(config, overwrite=force)

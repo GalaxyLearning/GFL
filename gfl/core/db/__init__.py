@@ -12,21 +12,5 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from ..config import GflConfig
-from gfl.core.db import DB
-from gfl.core.fs import FS
-from gfl.core.node import GflNode
-
-
-class ServerManager(object):
-
-    def __init__(self, fs: FS, node: GflNode, config: GflConfig):
-        super(ServerManager, self).__init__()
-        self.__fs = fs
-        self.__node = node
-        self.__config = config
-        self.__db = DB(fs.path.sqlite_file())
-
-    @property
-    def config(self) -> GflConfig:
-        return self.__config
+from .db import DB
+from .entities import init_sqlite
