@@ -14,3 +14,4 @@ traits==6.3.2
 ipython
 protobuf
 grpcio
+sqlalchemy

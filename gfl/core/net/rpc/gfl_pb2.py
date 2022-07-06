@@ -17,18 +17,16 @@ from google.protobuf import wrappers_pb2 as google_dot_protobuf_dot_wrappers__pb
 from gfl.core import data_pb2 as gfl_dot_core_dot_data__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1agfl/core/net/rpc/gfl.proto\x12\x10gfl.core.net.rpc\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x13gfl/core/data.proto\"\x9a\x01\n\x0e\x43omputingPower\x12\x17\n\x0f\x63pu_utilization\x18\x01 \x01(\x05\x12\x11\n\tcpu_cores\x18\x02 \x01(\x05\x12\x13\n\x0bmemory_used\x18\x03 \x01(\x05\x12\x14\n\x0cmemory_total\x18\x04 \x01(\x05\x12\x17\n\x0fgpu_memory_used\x18\x05 \x01(\x05\x12\x18\n\x10gpu_memory_total\x18\x06 \x01(\x05\"T\n\x06Health\x12\x19\n\x11running_job_count\x18\x01 \x01(\x05\x12/\n\x05power\x18\x02 \x01(\x0b\x32 .gfl.core.net.rpc.ComputingPower\"4\n\tJobStatus\x12\'\n\x06status\x18\x01 \x01(\x0e\x32\x17.gfl.core.JobStatusEnum\"/\n\x0bJobMetaList\x12 \n\x05metas\x18\x01 \x03(\x0b\x32\x11.gfl.core.JobMeta\"7\n\x0f\x44\x61tasetMetaList\x12$\n\x05metas\x18\x01 \x03(\x0b\x32\x15.gfl.core.DatasetMeta\"E\n\x0eJobJoinRequest\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12\x0f\n\x07node_id\x18\x02 \x01(\t\x12\x12\n\ndataset_id\x18\x03 \x01(\t\"C\n\x12ParamsFetchRequest\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12\x0f\n\x07node_id\x18\x02 \x01(\t\x12\x0c\n\x04step\x18\x03 \x01(\x05\",\n\x08NodeInfo\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x0f\n\x07pub_key\x18\x02 \x01(\t2\xf5\x07\n\x03Gfl\x12\x46\n\x0cSendNodeInfo\x12\x1a.gfl.core.net.rpc.NodeInfo\x1a\x1a.google.protobuf.BoolValue\x12G\n\tGetPubKey\x12\x1c.google.protobuf.StringValue\x1a\x1c.google.protobuf.StringValue\x12\x42\n\nSendHealth\x12\x18.gfl.core.net.rpc.Health\x1a\x1a.google.protobuf.BoolValue\x12P\n\x14GetNetComputingPower\x12\x16.google.protobuf.Empty\x1a .gfl.core.net.rpc.ComputingPower\x12V\n\x14GetJobComputingPower\x12\x1c.google.protobuf.StringValue\x1a .gfl.core.net.rpc.ComputingPower\x12K\n\rFetchJobMetas\x12\x1b.gfl.core.net.rpc.JobStatus\x1a\x1d.gfl.core.net.rpc.JobMetaList\x12;\n\x08\x46\x65tchJob\x12\x1c.google.protobuf.StringValue\x1a\x11.gfl.core.JobData\x12\x38\n\x07PushJob\x12\x11.gfl.core.JobData\x1a\x1a.google.protobuf.BoolValue\x12G\n\x07JoinJob\x12 .gfl.core.net.rpc.JobJoinRequest\x1a\x1a.google.protobuf.BoolValue\x12N\n\x11\x46\x65tchDatasetMetas\x12\x16.google.protobuf.Empty\x1a!.gfl.core.net.rpc.DatasetMetaList\x12\x43\n\x0c\x46\x65tchDataset\x12\x1c.google.protobuf.StringValue\x1a\x15.gfl.core.DatasetData\x12@\n\x0bPushDataset\x12\x15.gfl.core.DatasetData\x1a\x1a.google.protobuf.BoolValue\x12J\n\x0b\x46\x65tchParams\x12$.gfl.core.net.rpc.ParamsFetchRequest\x1a\x15.gfl.core.ModelParams\x12?\n\nPushParams\x12\x15.gfl.core.ModelParams\x1a\x1a.google.protobuf.BoolValueb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1agfl/core/net/rpc/gfl.proto\x12\x10gfl.core.net.rpc\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x13gfl/core/data.proto\"\x9a\x01\n\x0e\x43omputingPower\x12\x17\n\x0f\x63pu_utilization\x18\x01 \x01(\x05\x12\x11\n\tcpu_cores\x18\x02 \x01(\x05\x12\x13\n\x0bmemory_used\x18\x03 \x01(\x05\x12\x14\n\x0cmemory_total\x18\x04 \x01(\x05\x12\x17\n\x0fgpu_memory_used\x18\x05 \x01(\x05\x12\x18\n\x10gpu_memory_total\x18\x06 \x01(\x05\"T\n\x06Health\x12\x19\n\x11running_job_count\x18\x01 \x01(\x05\x12/\n\x05power\x18\x02 \x01(\x0b\x32 .gfl.core.net.rpc.ComputingPower\"/\n\x0bJobMetaList\x12 \n\x05metas\x18\x01 \x03(\x0b\x32\x11.gfl.core.JobMeta\"7\n\x0f\x44\x61tasetMetaList\x12$\n\x05metas\x18\x01 \x03(\x0b\x32\x15.gfl.core.DatasetMeta\"E\n\x0eJobJoinRequest\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12\x0f\n\x07node_id\x18\x02 \x01(\t\x12\x12\n\ndataset_id\x18\x03 \x01(\t\"C\n\x12ParamsFetchRequest\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12\x0f\n\x07node_id\x18\x02 \x01(\t\x12\x0c\n\x04step\x18\x03 \x01(\x05\x32\xed\x07\n\x03Gfl\x12>\n\x0cSendNodeInfo\x12\x12.gfl.core.NodeInfo\x1a\x1a.google.protobuf.BoolValue\x12G\n\tGetPubKey\x12\x1c.google.protobuf.StringValue\x1a\x1c.google.protobuf.StringValue\x12\x42\n\nSendHealth\x12\x18.gfl.core.net.rpc.Health\x1a\x1a.google.protobuf.BoolValue\x12P\n\x14GetNetComputingPower\x12\x16.google.protobuf.Empty\x1a .gfl.core.net.rpc.ComputingPower\x12V\n\x14GetJobComputingPower\x12\x1c.google.protobuf.StringValue\x1a .gfl.core.net.rpc.ComputingPower\x12K\n\rFetchJobMetas\x12\x1b.google.protobuf.Int32Value\x1a\x1d.gfl.core.net.rpc.JobMetaList\x12;\n\x08\x46\x65tchJob\x12\x1c.google.protobuf.StringValue\x1a\x11.gfl.core.JobData\x12\x38\n\x07PushJob\x12\x11.gfl.core.JobData\x1a\x1a.google.protobuf.BoolValue\x12G\n\x07JoinJob\x12 .gfl.core.net.rpc.JobJoinRequest\x1a\x1a.google.protobuf.BoolValue\x12N\n\x11\x46\x65tchDatasetMetas\x12\x16.google.protobuf.Empty\x1a!.gfl.core.net.rpc.DatasetMetaList\x12\x43\n\x0c\x46\x65tchDataset\x12\x1c.google.protobuf.StringValue\x1a\x15.gfl.core.DatasetData\x12@\n\x0bPushDataset\x12\x15.gfl.core.DatasetData\x1a\x1a.google.protobuf.BoolValue\x12J\n\x0b\x46\x65tchParams\x12$.gfl.core.net.rpc.ParamsFetchRequest\x1a\x15.gfl.core.ModelParams\x12?\n\nPushParams\x12\x15.gfl.core.ModelParams\x1a\x1a.google.protobuf.BoolValueb\x06proto3')
 
 
 
 _COMPUTINGPOWER = DESCRIPTOR.message_types_by_name['ComputingPower']
 _HEALTH = DESCRIPTOR.message_types_by_name['Health']
-_JOBSTATUS = DESCRIPTOR.message_types_by_name['JobStatus']
 _JOBMETALIST = DESCRIPTOR.message_types_by_name['JobMetaList']
 _DATASETMETALIST = DESCRIPTOR.message_types_by_name['DatasetMetaList']
 _JOBJOINREQUEST = DESCRIPTOR.message_types_by_name['JobJoinRequest']
 _PARAMSFETCHREQUEST = DESCRIPTOR.message_types_by_name['ParamsFetchRequest']
-_NODEINFO = DESCRIPTOR.message_types_by_name['NodeInfo']
 ComputingPower = _reflection.GeneratedProtocolMessageType('ComputingPower', (_message.Message,), {
   'DESCRIPTOR' : _COMPUTINGPOWER,
   '__module__' : 'gfl.core.net.rpc.gfl_pb2'
@@ -42,13 +40,6 @@ Health = _reflection.GeneratedProtocolMessageType('Health', (_message.Message,),
   # @@protoc_insertion_point(class_scope:gfl.core.net.rpc.Health)
   })
 _sym_db.RegisterMessage(Health)
-
-JobStatus = _reflection.GeneratedProtocolMessageType('JobStatus', (_message.Message,), {
-  'DESCRIPTOR' : _JOBSTATUS,
-  '__module__' : 'gfl.core.net.rpc.gfl_pb2'
-  # @@protoc_insertion_point(class_scope:gfl.core.net.rpc.JobStatus)
-  })
-_sym_db.RegisterMessage(JobStatus)
 
 JobMetaList = _reflection.GeneratedProtocolMessageType('JobMetaList', (_message.Message,), {
   'DESCRIPTOR' : _JOBMETALIST,
@@ -78,13 +69,6 @@ ParamsFetchRequest = _reflection.GeneratedProtocolMessageType('ParamsFetchReques
   })
 _sym_db.RegisterMessage(ParamsFetchRequest)
 
-NodeInfo = _reflection.GeneratedProtocolMessageType('NodeInfo', (_message.Message,), {
-  'DESCRIPTOR' : _NODEINFO,
-  '__module__' : 'gfl.core.net.rpc.gfl_pb2'
-  # @@protoc_insertion_point(class_scope:gfl.core.net.rpc.NodeInfo)
-  })
-_sym_db.RegisterMessage(NodeInfo)
-
 _GFL = DESCRIPTOR.services_by_name['Gfl']
 if _descriptor._USE_C_DESCRIPTORS == False:
 
@@ -93,18 +77,14 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _COMPUTINGPOWER._serialized_end=285
   _HEALTH._serialized_start=287
   _HEALTH._serialized_end=371
-  _JOBSTATUS._serialized_start=373
-  _JOBSTATUS._serialized_end=425
-  _JOBMETALIST._serialized_start=427
-  _JOBMETALIST._serialized_end=474
-  _DATASETMETALIST._serialized_start=476
-  _DATASETMETALIST._serialized_end=531
-  _JOBJOINREQUEST._serialized_start=533
-  _JOBJOINREQUEST._serialized_end=602
-  _PARAMSFETCHREQUEST._serialized_start=604
-  _PARAMSFETCHREQUEST._serialized_end=671
-  _NODEINFO._serialized_start=673
-  _NODEINFO._serialized_end=717
-  _GFL._serialized_start=720
-  _GFL._serialized_end=1733
+  _JOBMETALIST._serialized_start=373
+  _JOBMETALIST._serialized_end=420
+  _DATASETMETALIST._serialized_start=422
+  _DATASETMETALIST._serialized_end=477
+  _JOBJOINREQUEST._serialized_start=479
+  _JOBJOINREQUEST._serialized_end=548
+  _PARAMSFETCHREQUEST._serialized_start=550
+  _PARAMSFETCHREQUEST._serialized_end=617
+  _GFL._serialized_start=620
+  _GFL._serialized_end=1625
 # @@protoc_insertion_point(module_scope)

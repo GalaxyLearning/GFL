@@ -2,30 +2,12 @@ syntax = "proto3";
 
 package gfl.core;
 
-enum JobStatusEnum {
-  NEW = 0;
-  READY = 1;
-  RUNNING = 2;
-  WAITING = 3;
-  FINISHED = 4;
-  ABORTED = 5;
-}
-
-enum DatasetType {
-  IMAGE = 0;
-  VIDEO = 1;
-  AUDIO = 2;
-  TEXT = 3;
-  STRUCTURE = 4;
-}
-
 message JobMeta {
-  string id = 1;
+  string job_id = 1;
   string owner = 2;
   int64 create_time = 3;
-  string content = 4;
-  JobStatusEnum status = 5;
-  repeated string dataset_ids = 6;
+  int32 status = 4;
+  repeated string dataset_ids = 5;
 }
 
 message JobConfig {
@@ -48,18 +30,21 @@ message AggregateConfig {
 
 message JobData {
   JobMeta meta = 1;
-  JobConfig job_config = 2;
-  TrainConfig train_config = 3;
-  AggregateConfig aggregate_config = 4;
+  string content = 2;
+  JobConfig job_config = 3;
+  TrainConfig train_config = 4;
+  AggregateConfig aggregate_config = 5;
 }
 
 message DatasetMeta {
-  string id = 1;
+  string dataset_id = 1;
   string owner = 2;
   int64 create_time = 3;
-  string content = 4;
-  DatasetType type = 5;
+  int32 status = 4;
+  int32 type = 5;
   int32 size = 6;
+  int32 request_cnt = 7;
+  int32 used_cnt = 8;
 }
 
 message DatasetConfig {
@@ -70,12 +55,25 @@ message DatasetConfig {
 
 message DatasetData {
   DatasetMeta meta = 1;
-  DatasetConfig dataset_config = 2;
+  string content = 2;
+  DatasetConfig dataset_config = 3;
 }
 
 message ModelParams {
   string job_id = 1;
-  string node_id = 2;
-  int32 step = 3;
-  bytes data = 4;
+  string node_address = 2;
+  string dataset_id = 3;
+  int32 step = 4;
+  string path = 5;
+  float loss = 6;
+  string metric_name = 7;
+  float metric_value = 8;
+  float score = 9;
+  bool is_aggregate = 10;
+  bytes data = 11;
+}
+
+message NodeInfo {
+  string address = 1;
+  string pub_key = 2;
 }

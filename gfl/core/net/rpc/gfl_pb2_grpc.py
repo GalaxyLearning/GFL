@@ -19,7 +19,7 @@ class GflStub(object):
         """
         self.SendNodeInfo = channel.unary_unary(
                 '/gfl.core.net.rpc.Gfl/SendNodeInfo',
-                request_serializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.NodeInfo.SerializeToString,
+                request_serializer=gfl_dot_core_dot_data__pb2.NodeInfo.SerializeToString,
                 response_deserializer=google_dot_protobuf_dot_wrappers__pb2.BoolValue.FromString,
                 )
         self.GetPubKey = channel.unary_unary(
@@ -44,7 +44,7 @@ class GflStub(object):
                 )
         self.FetchJobMetas = channel.unary_unary(
                 '/gfl.core.net.rpc.Gfl/FetchJobMetas',
-                request_serializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.JobStatus.SerializeToString,
+                request_serializer=google_dot_protobuf_dot_wrappers__pb2.Int32Value.SerializeToString,
                 response_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.JobMetaList.FromString,
                 )
         self.FetchJob = channel.unary_unary(
@@ -181,7 +181,7 @@ def add_GflServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'SendNodeInfo': grpc.unary_unary_rpc_method_handler(
                     servicer.SendNodeInfo,
-                    request_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.NodeInfo.FromString,
+                    request_deserializer=gfl_dot_core_dot_data__pb2.NodeInfo.FromString,
                     response_serializer=google_dot_protobuf_dot_wrappers__pb2.BoolValue.SerializeToString,
             ),
             'GetPubKey': grpc.unary_unary_rpc_method_handler(
@@ -206,7 +206,7 @@ def add_GflServicer_to_server(servicer, server):
             ),
             'FetchJobMetas': grpc.unary_unary_rpc_method_handler(
                     servicer.FetchJobMetas,
-                    request_deserializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.JobStatus.FromString,
+                    request_deserializer=google_dot_protobuf_dot_wrappers__pb2.Int32Value.FromString,
                     response_serializer=gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.JobMetaList.SerializeToString,
             ),
             'FetchJob': grpc.unary_unary_rpc_method_handler(
@@ -271,7 +271,7 @@ class Gfl(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/gfl.core.net.rpc.Gfl/SendNodeInfo',
-            gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.NodeInfo.SerializeToString,
+            gfl_dot_core_dot_data__pb2.NodeInfo.SerializeToString,
             google_dot_protobuf_dot_wrappers__pb2.BoolValue.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
@@ -356,7 +356,7 @@ class Gfl(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/gfl.core.net.rpc.Gfl/FetchJobMetas',
-            gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.JobStatus.SerializeToString,
+            google_dot_protobuf_dot_wrappers__pb2.Int32Value.SerializeToString,
             gfl_dot_core_dot_net_dot_rpc_dot_gfl__pb2.JobMetaList.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

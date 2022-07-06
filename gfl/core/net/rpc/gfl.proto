@@ -20,10 +20,6 @@ message Health {
   ComputingPower power = 2;
 }
 
-message JobStatus {
-  JobStatusEnum status = 1;
-}
-
 message JobMetaList {
   repeated JobMeta metas = 1;
 }
@@ -44,14 +40,9 @@ message ParamsFetchRequest {
   int32 step = 3;
 }
 
-message NodeInfo {
-  string address = 1;
-  string pub_key = 2;
-}
-
 service Gfl {
 
-  rpc SendNodeInfo(NodeInfo) returns (google.protobuf.BoolValue);
+  rpc SendNodeInfo(gfl.core.NodeInfo) returns (google.protobuf.BoolValue);
 
   rpc GetPubKey(google.protobuf.StringValue) returns (google.protobuf.StringValue);
 
@@ -61,7 +52,7 @@ service Gfl {
 
   rpc GetJobComputingPower(google.protobuf.StringValue) returns(ComputingPower);
 
-  rpc FetchJobMetas(JobStatus) returns(JobMetaList);
+  rpc FetchJobMetas(google.protobuf.Int32Value) returns(JobMetaList);
 
   rpc FetchJob(google.protobuf.StringValue) returns(gfl.core.JobData);
 
