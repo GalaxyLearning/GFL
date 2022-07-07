@@ -129,7 +129,7 @@ class DatasetTraceTable(Base):
 
     __tablename__ = "dataset_trace"
 
-    id = Column("id", Integer, primary_key=True, nullable=False, auto_increment="auto")
+    id = Column("id", Integer, primary_key=True, nullable=False, autoincrement=True)
     dataset_id = Column("dataset_id", String(38), nullable=False)
     job_id = Column("job_id", String(38), nullable=False)
     confirmed = Column("confirmed", Boolean, nullable=False, default=False)
@@ -147,10 +147,10 @@ class ParamsTable(Base):
 
     __tablename__ = "params"
 
-    id = Column("id", Integer, primary_key=True, nullable=False, auto_increment="auto")
+    id = Column("id", Integer, primary_key=True, nullable=False, autoincrement=True)
     job_id = Column("job_id", String(38), nullable=False)
     node_address = Column("node_address", String(42), nullable=False)
-    dataset_id = Column("dataset_id", String(38), nullable=True)
+    dataset_id = Column("dataset_id", String(38), nullable=True, default="")
     step = Column("step", Integer, nullable=False)
     path = Column("path", String(1024), nullable=False)
     loss = Column("loss", Float, nullable=False)

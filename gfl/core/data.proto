@@ -36,6 +36,19 @@ message JobData {
   AggregateConfig aggregate_config = 5;
 }
 
+message JobTrace {
+  string job_id = 1;
+  int64 begin_timepoint = 2;
+  int64 end_timepoint = 3;
+  int32 ready_time = 4;
+  int32 aggregate_running_time = 5;
+  int32 aggregate_waiting_time = 6;
+  int32 train_running_time = 7;
+  int32 train_waiting_time = 8;
+  int32 comm_time = 9;
+  int32 used_time = 10;
+}
+
 message DatasetMeta {
   string dataset_id = 1;
   string owner = 2;
@@ -57,6 +70,13 @@ message DatasetData {
   DatasetMeta meta = 1;
   string content = 2;
   DatasetConfig dataset_config = 3;
+}
+
+message DatasetTrace {
+  string dataset_id = 1;
+  string job_id = 2;
+  bool confirmed = 3;
+  float score = 4;
 }
 
 message ModelParams {

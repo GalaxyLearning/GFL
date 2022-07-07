@@ -14,6 +14,7 @@
 
 import base64
 import json
+import uuid
 
 import ecies
 from eth_account.messages import encode_defunct
