@@ -13,8 +13,9 @@
 #  limitations under the License.
 
 import psutil
-
-
+import pynvml
+from pynvml import *
+nvmlInit()
 class SysUtils(object):
     """
     Some methods of query the usage system hardware resources.
@@ -57,23 +58,31 @@ class SysUtils(object):
 
     @classmethod
     def gpu_count(cls):
-        pass
+        return nvmlDeviceGetCount()
 
     @classmethod
     def gpu_mem_total(cls, index):
-        pass
+        handle=pynvml.nvmlDeviceGetHandleByIndex(index)
+        mem=pynvml.nvmlDeviceGetMemoryInfo(handle)
+        return mem.total
 
     @classmethod
     def gpu_mem_used(cls, index):
-        pass
+        handle = pynvml.nvmlDeviceGetHandleByIndex(index)
+        mem = pynvml.nvmlDeviceGetMemoryInfo(handle)
+        return mem.used
 
     @classmethod
     def gpu_mem_free(cls, index):
-        pass
+        handle = pynvml.nvmlDeviceGetHandleByIndex(index)
+        mem = pynvml.nvmlDeviceGetMemoryInfo(handle)
+        return mem.free
 
     @classmethod
     def gpu_utilization_rates(cls, index):
-        pass
+        handle = pynvml.nvmlDeviceGetHandleByIndex(index)
+        rate=pynvml.nvmlDeviceGetUtilizationRates(handle)
+        return rate
 
     @classmethod
     def proc_cpu_percent(cls, pid=None):
@@ -86,3 +95,4 @@ class SysUtils(object):
     @classmethod
     def proc_gpu_mem_used(cls, pid=None, index=None):
         pass
+nvmlShutdown()
