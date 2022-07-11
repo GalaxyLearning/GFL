@@ -13,6 +13,7 @@
 #  limitations under the License.
 
 import psutil
+import pynvml
 
 
 class SysUtils(object):
@@ -77,12 +78,31 @@ class SysUtils(object):
 
     @classmethod
     def proc_cpu_percent(cls, pid=None):
-        pass
+        p = psutil.Process(pid)
+        return p.cpu_percent
 
     @classmethod
     def proc_mem_used(cls, pid=None):
-        pass
+        p = psutil.Process(pid)
+        return p.memory_percent()
 
     @classmethod
     def proc_gpu_mem_used(cls, pid=None, index=None):
-        pass
+        handle = pynvml.nvmlDeviceGetHandleByIndex(index)
+        return pynvml.nvmlDeviceGetVgpuProcessUtilization(handle)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
