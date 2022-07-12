@@ -9,8 +9,9 @@ requests~=2.25.1
 numpy~=1.20.2
 ipython>=6.0
 hjson~=3.0.2
-zcommons==0.1.0
+zcommons==0.1.1
 traits==6.3.2
 ipython
 protobuf
 grpcio
+sqlalchemy

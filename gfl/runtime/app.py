@@ -14,6 +14,7 @@
 
 
 from .config import GflConfig
+from gfl.core.db import init_sqlite
 from gfl.core.fs import FS
 from gfl.core.node import GflNode
 
@@ -52,6 +53,7 @@ class GflApplication(object):
         self.__fs.init(overwrite)
         self.node.save(self.__fs.path.key_file())
         self.config.save(self.__fs.path.config_file())
+        init_sqlite(self.__fs.path.sqlite_file())
 
     def start(self, daemon=False):
         self.__node = GflNode.load_node(self.__fs.path.key_file())

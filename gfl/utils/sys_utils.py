@@ -42,19 +42,23 @@ class SysUtils(object):
 
     @classmethod
     def mem_total(cls):
-        pass
+        mem = psutil.virtual_memory()
+        return mem.total
 
     @classmethod
     def mem_used(cls):
-        pass
+        mem = psutil.virtual_memory()
+        return mem.used
 
     @classmethod
     def mem_available(cls):
-        pass
+        mem = psutil.virtual_memory()
+        return mem.available
 
     @classmethod
     def mem_free(cls):
-        pass
+        mem = psutil.virtual_memory()
+        return mem.free
 
     @classmethod
     def gpu_count(cls):
