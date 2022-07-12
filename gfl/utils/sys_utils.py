@@ -89,7 +89,15 @@ class SysUtils(object):
     @classmethod
     def proc_gpu_mem_used(cls, pid=None, index=None):
         handle = pynvml.nvmlDeviceGetHandleByIndex(index)
-        return pynvml.nvmlDeviceGetVgpuProcessUtilization(handle)
+        info_list = pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
+        info_list_len = len(info_list)
+        gpu_memory_used = 0
+        if info_list_len > 0:
+            for i in info_list:
+                if i.pid == pid:
+                    gpu_memory_used += i.usedgpumemory
+        return gpu_memory_used
+
 
 
 
