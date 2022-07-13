@@ -16,6 +16,7 @@ import psutil
 import pynvml
 from pynvml import *
 nvmlInit()
+
 class SysUtils(object):
     """
     Some methods of query the usage system hardware resources.
@@ -111,3 +112,4 @@ class SysUtils(object):
         return gpu_memory_used
         pass
 nvmlShutdown()
+
