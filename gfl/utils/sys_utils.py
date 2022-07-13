@@ -97,20 +97,3 @@ class SysUtils(object):
                 if i.pid == pid:
                     gpu_memory_used += i.usedgpumemory
         return gpu_memory_used
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
