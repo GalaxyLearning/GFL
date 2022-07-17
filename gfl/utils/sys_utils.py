@@ -16,6 +16,7 @@ import psutil
 import pynvml
 from pynvml import *
 nvmlInit()
+
 class SysUtils(object):
     """
     Some methods of query the usage system hardware resources.
@@ -90,13 +91,25 @@ class SysUtils(object):
 
     @classmethod
     def proc_cpu_percent(cls, pid=None):
-        pass
+        p = psutil.Process(pid)
+        return p.cpu_percent
 
     @classmethod
     def proc_mem_used(cls, pid=None):
-        pass
+        p = psutil.Process(pid)
+        return p.memory_percent()
 
     @classmethod
     def proc_gpu_mem_used(cls, pid=None, index=None):
+        handle = pynvml.nvmlDeviceGetHandleByIndex(index)
+        info_list = pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
+        info_list_len = len(info_list)
+        gpu_memory_used = 0
+        if info_list_len > 0:
+            for i in info_list:
+                if i.pid == pid:
+                    gpu_memory_used += i.usedgpumemory
+        return gpu_memory_used
         pass
 nvmlShutdown()
+
