@@ -109,17 +109,17 @@ class SysUtils(object):
         return rate
 
     @classmethod
-    def proc_cpu_percent(cls, pid=None):
+    def proc_cpu_percent(cls, pid):
         p = psutil.Process(pid)
-        return p.cpu_percent()      # TODO: not works
+        return p.cpu_percent(interval=0.05)  # TODO: not works
 
     @classmethod
-    def proc_mem_used(cls, pid=None):
+    def proc_mem_used(cls, pid):
         p = psutil.Process(pid)
-        return p.memory_percent()   # TODO: mem_used(B), not memory percent
+        return p.memory_info().rss   # TODO: mem_used(B), not memory percent
 
     @classmethod
-    def proc_gpu_mem_used(cls, pid=None, index=None):
+    def proc_gpu_mem_used(cls, index, pid=None):
         if not _NVML_INITIALIZED:
             return 0
         handle = pynvml.nvmlDeviceGetHandleByIndex(index)
