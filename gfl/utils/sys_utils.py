@@ -112,20 +112,14 @@ class SysUtils(object):
     @classmethod
     def proc_cpu_percent(cls, pid=None):
         if pid is None:
-            id1=os.getpid()
-            p = psutil.Process(id1)
-        else:
-            p = psutil.Process(pid)
-        return p.cpu_percent(interval=0.05)  # TODO: not works
+            pid=os.getpid()
+        return psutil.Process(pid).cpu_percent(interval=0.05)  # TODO: not works
 
     @classmethod
     def proc_mem_used(cls, pid=None):
         if pid is None:
-            id1 = os.getpid()
-            p = psutil.Process(id1)
-        else:
-            p = psutil.Process(pid)
-        return p.memory_info().rss   # TODO: mem_used(B), not memory percent
+            pid = os.getpid()
+        return psutil.Process(pid).memory_info().rss   # TODO: mem_used(B), not memory percent
 
     @classmethod
     def proc_gpu_mem_used(cls, index, pid=None):
