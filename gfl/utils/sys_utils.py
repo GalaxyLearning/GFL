@@ -107,7 +107,7 @@ class SysUtils(object):
             return 0
         handle = pynvml.nvmlDeviceGetHandleByIndex(index)
         rate = pynvml.nvmlDeviceGetUtilizationRates(handle)
-        return rate
+        return rate.gpu
 
     @classmethod
     def proc_cpu_percent(cls, pid=None):
@@ -125,6 +125,8 @@ class SysUtils(object):
     def proc_gpu_mem_used(cls, index, pid=None):
         if not _NVML_INITIALIZED:
             return 0
+        if pid is None:
+            pid = os.getpid()
         handle = pynvml.nvmlDeviceGetHandleByIndex(index)
         info_list = pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
         info_list_len = len(info_list)
