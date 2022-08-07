@@ -13,6 +13,15 @@
 #  limitations under the License.
 
 import psutil
+import pynvml
+import os
+
+
+try:
+    pynvml.nvmlInit()
+    _NVML_INITIALIZED = True
+except:
+    _NVML_INITIALIZED = False
 
 
 class SysUtils(object):
@@ -41,48 +50,94 @@ class SysUtils(object):
 
     @classmethod
     def mem_total(cls):
-        pass
+        mem = psutil.virtual_memory()
+        return mem.total
 
     @classmethod
     def mem_used(cls):
-        pass
+        mem = psutil.virtual_memory()
+        return mem.used
 
     @classmethod
     def mem_available(cls):
-        pass
+        mem = psutil.virtual_memory()
+        return mem.available
 
     @classmethod
     def mem_free(cls):
-        pass
+        mem = psutil.virtual_memory()
+        return mem.free
 
     @classmethod
     def gpu_count(cls):
-        pass
+        try:
+            return pynvml.nvmlDeviceGetCount()
+        except:
+            return 0
 
     @classmethod
     def gpu_mem_total(cls, index):
-        pass
+        mem_info = cls.__gpu_memory_info(index)
+        return mem_info.total if mem_info is not None else 0
 
     @classmethod
     def gpu_mem_used(cls, index):
-        pass
+        mem_info = cls.__gpu_memory_info(index)
+        return mem_info.used if mem_info is not None else 0
 
     @classmethod
     def gpu_mem_free(cls, index):
-        pass
+        mem_info = cls.__gpu_memory_info(index)
+        return mem_info.free if mem_info is not None else 0
 
     @classmethod
-    def gpu_utilization_rates(cls, index):
-        pass
+    def gpu_utilization_rate(cls, index):
+        utilization = cls.__gpu_utilization(index)
+        return utilization.gpu / 100 if utilization is not None else 0
 
     @classmethod
     def proc_cpu_percent(cls, pid=None):
-        pass
+        pid = pid or os.getpid()
+        return psutil.Process(pid).cpu_percent(interval=0.05)
 
     @classmethod
     def proc_mem_used(cls, pid=None):
-        pass
+        pid = pid or os.getpid()
+        return psutil.Process(pid).memory_info().rss
 
     @classmethod
-    def proc_gpu_mem_used(cls, pid=None, index=None):
-        pass
+    def proc_gpu_mem_used(cls, index, pid=None):
+        pid = pid or os.getpid()
+        proc = cls.__gpu_process(index, pid)
+        return proc.usedGpuMemory if proc is not None else 0
+
+    @classmethod
+    def __gpu_memory_info(cls, index):
+        try:
+            return pynvml.nvmlDeviceGetMemoryInfo(cls.__gpu_handle(index))
+        except:
+            return None
+
+    @classmethod
+    def __gpu_utilization(cls, index):
+        try:
+            return pynvml.nvmlDeviceGetUtilizationRates(cls.__gpu_handle(index))
+        except:
+            return None
+
+    @classmethod
+    def __gpu_process(cls, index, pid):
+        try:
+            processes = pynvml.nvmlDeviceGetComputeRunningProcesses(cls.__gpu_handle(index))
+            for p in processes:
+                if p.pid == pid:
+                    return p
+            return None
+        except:
+            return None
+
+    @classmethod
+    def __gpu_handle(cls, index):
+        if not _NVML_INITIALIZED:
+            raise pynvml.NVMLError(pynvml.NVML_ERROR_UNINITIALIZED)
+        return pynvml.nvmlDeviceGetHandleByIndex(index)
