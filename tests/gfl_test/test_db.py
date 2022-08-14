@@ -18,7 +18,8 @@ import uuid
 
 import zcommons as zc
 
-from gfl.core import constants, data_pb2
+from gfl.core import data_pb2
+from gfl.data import constants
 from gfl.core.db import init_sqlite, DB
 from gfl.core.node import GflNode
 

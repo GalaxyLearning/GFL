@@ -20,6 +20,8 @@ __all__ = [
 from dataclasses import dataclass
 from typing import List
 
+from .constants import *
+
 
 @dataclass()
 class Metadata:
@@ -33,11 +35,14 @@ class Metadata:
 @dataclass()
 class JobMeta(Metadata):
 
+    status: JobStatus = JobStatus.NEW
     datasets: List[str] = None
 
 
 @dataclass()
 class DatasetMeta(Metadata):
 
+    type: DatasetType = DatasetType.IMAGE
+    status: DatasetStatus = DatasetStatus.NEW
     size: int = 0
     used_cnt: int = 0

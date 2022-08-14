@@ -22,7 +22,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from .entities import *
-from .. import data_pb2, constants
+from .. import data_pb2
+from gfl.data import DatasetStatus, MIN_HOT_CNT
+
 
 logger = logging.getLogger("gfl.db")
 
@@ -130,8 +132,8 @@ class DB(object):
                 dataset.request_cnt = dataset.request_cnt + inc_request_cnt
             if inc_used_cnt is not None:
                 dataset.used_cnt = dataset.used_cnt + inc_used_cnt
-                if dataset.used_cnt >= constants.MIN_HOT_CNT:
-                    dataset.status = constants.DatasetStatus.HOT.value
+                if dataset.used_cnt >= MIN_HOT_CNT:
+                    dataset.status = DatasetStatus.HOT.value
 
         return 1 == self._update_one(DatasetTable, update_fn, dataset_id=dataset_id)
 
