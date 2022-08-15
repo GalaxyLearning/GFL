@@ -31,9 +31,23 @@ class JobData:
     train_config: TrainConfig
     aggregate_config: AggregateConfig
 
+    @property
+    def config(self):
+        return {
+            "job": self.job_config,
+            "train": self.train_config,
+            "aggregate_config": self.aggregate_config
+        }
+
 
 @dataclass()
 class DatasetData:
 
     meta: DatasetMeta
     dataset_config: DatasetConfig
+
+    @property
+    def config(self):
+        return {
+            "dataset": self.dataset_config
+        }

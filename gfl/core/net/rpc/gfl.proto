@@ -6,7 +6,7 @@ import "gfl/core/data.proto";
 
 package gfl.core.net.rpc;
 
-message ComputingPower {
+message ComputingResource {
   int32 cpu_utilization = 1;
   int32 cpu_cores = 2;
   int32 memory_used = 3;

@@ -25,7 +25,7 @@ __all__ = [
 from sqlalchemy import Column, String, Integer, BigInteger, Float, Boolean, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 
-from ..constants import JobStatus, DatasetStatus
+from gfl.data.constants import JobStatus, DatasetStatus
 
 
 Base = declarative_base()

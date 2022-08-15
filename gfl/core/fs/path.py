@@ -87,7 +87,11 @@ class JobPath(object):
 
     @path_like
     def config_file(self, job_id):
-        return os.path.join(self.__job_root, job_id, "config.sqlite")
+        return os.path.join(self.__job_root, job_id, "config.json")
+
+    @path_like
+    def job_dir(self, job_id):
+        return os.path.join(self.__job_root, job_id)
 
     @path_like
     def module_dir(self, job_id):
@@ -131,6 +135,10 @@ class DatasetPath(object):
     @path_like
     def config_file(self, dataset_id):
         return os.path.join(self.__dataset_root, dataset_id, "config.json")
+
+    @path_like
+    def dataset_dir(self, dataset_id):
+        return os.path.join(self.__dataset_root, dataset_id)
 
     @path_like
     def module_dir(self, dataset_id):
