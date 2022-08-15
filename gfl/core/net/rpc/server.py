@@ -16,6 +16,7 @@ from concurrent import futures
 
 import grpc
 
+from gfl.data import *
 import google.protobuf.wrappers_pb2 as wrappers_pb2
 import gfl.core.data_pb2 as data_pb2
 import gfl.core.net.rpc.gfl_pb2_grpc as gfl_pb2_grpc
@@ -43,8 +44,11 @@ class GflServicer(gfl_pb2_grpc.GflServicer):
         return wrappers_pb2.StringValue(value=pub_key)
 
     def SendHealth(self, request, context):
+        cp = ComputingResource()
+        cp.mem_used = request.computing_power.mem_used
+        cp.mem_total
         node = self.nodes[context.peer()]
-        self._manager.update_resource(node.address, request.running_job_count, request.computing_power)
+        self._manager.update_resource(node.address, request.running_job_count, cp)
         return wrappers_pb2.BoolValue(value=True)
 
     def GetNetComputingPower(self, request, context):

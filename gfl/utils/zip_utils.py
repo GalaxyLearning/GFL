@@ -22,6 +22,18 @@ from zipfile import ZipFile, ZIP_DEFLATED
 class ZipUtils(object):
 
     @classmethod
+    def compress_package(cls, package):
+        """
+
+        :param package:
+        :return:
+        """
+        path = package.__file__
+        if path.endswith("__init__.py"):
+            path = os.path.dirname(path)
+        return cls.get_compress_data(path)
+
+    @classmethod
     def get_compress_data(cls, src_paths: Union[str, list], basename=None) -> bytes:
         """
 
