@@ -16,7 +16,6 @@ __all__ = [
     "FLTrainer"
 ]
 
-
 class FLTrainer(object):
 
     def __init__(self, job):

@@ -13,11 +13,11 @@
 #  limitations under the License.
 
 from .scheduler import Scheduler
-from ..job import Job
+from ..fl_job import FLJob
 
 
 class TrainScheduler(Scheduler):
 
-    def __init__(self, job: Job):
+    def __init__(self, job: FLJob):
         super(TrainScheduler, self).__init__()
 

@@ -34,6 +34,7 @@ message JobData {
   JobConfig job_config = 3;
   TrainConfig train_config = 4;
   AggregateConfig aggregate_config = 5;
+  bytes package_data = 6;
 }
 
 message JobTrace {
@@ -70,6 +71,7 @@ message DatasetData {
   DatasetMeta meta = 1;
   string content = 2;
   DatasetConfig dataset_config = 3;
+  bytes package_data = 4;
 }
 
 message DatasetTrace {

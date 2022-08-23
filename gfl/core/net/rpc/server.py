@@ -16,6 +16,7 @@ from concurrent import futures
 
 import grpc
 
+from gfl.data import *
 import google.protobuf.wrappers_pb2 as wrappers_pb2
 import gfl.core.data_pb2 as data_pb2
 import gfl.core.net.rpc.gfl_pb2_grpc as gfl_pb2_grpc
@@ -31,11 +32,7 @@ class GflServicer(gfl_pb2_grpc.GflServicer):
         self.nodes = {}
 
     def SendNodeInfo(self, request, context):
-        print(f"Peer: {context.peer()}")
-        print(f"Address: {request.address}")
-        print(f"PubKey: {request.pub_key}")
         self.nodes[context.peer()] = GflNode(address=request.address, pub_key=request.pub_key)
-        # context.set_code(grpc.StatusCode.OK)
         return wrappers_pb2.BoolValue(value=True)
 
     def GetPubKey(self, request, context):
@@ -44,17 +41,21 @@ class GflServicer(gfl_pb2_grpc.GflServicer):
             if node.address == request.address.value:
                 pub_key = node.pub_key
                 break
-        # context.set_code(grpc.StatusCode.OK)
         return wrappers_pb2.StringValue(value=pub_key)
 
     def SendHealth(self, request, context):
-        pass
+        cp = ComputingResource()
+        cp.mem_used = request.computing_power.mem_used
+        cp.mem_total
+        node = self.nodes[context.peer()]
+        self._manager.update_resource(node.address, request.running_job_count, cp)
+        return wrappers_pb2.BoolValue(value=True)
 
     def GetNetComputingPower(self, request, context):
-        pass
+        return self._manager.get_net_resource()
 
     def GetJobComputingPower(self, request, context):
-        pass
+        return self._manager.get_node_resource(request.value)
 
     def FetchJobMetas(self, request, context):
         pass

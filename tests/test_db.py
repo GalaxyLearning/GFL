@@ -18,7 +18,8 @@ import uuid
 
 import zcommons as zc
 
-from gfl.core import constants, data_pb2
+from gfl.core import data_pb2
+from gfl.data import constants
 from gfl.core.db import init_sqlite, DB
 from gfl.core.node import GflNode
 
@@ -26,7 +27,9 @@ from gfl.core.node import GflNode
 class DBTest(unittest.TestCase):
 
     def setUp(self) -> None:
-        sqlite_filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resources", "test.sqlite")
+        resource_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resources")
+        os.makedirs(resource_path, exist_ok=True)
+        sqlite_filepath = os.path.join(resource_path, "test.sqlite")
         if os.path.exists(sqlite_filepath):
             os.remove(sqlite_filepath)
         init_sqlite(sqlite_filepath)
