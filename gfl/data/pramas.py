@@ -13,37 +13,20 @@
 #  limitations under the License.
 
 __all__ = [
-    "JobMeta",
-    "DatasetMeta"
+    "ModelParams"
 ]
 
 from dataclasses import dataclass
-from typing import List
-
-from .constants import *
 
 
 @dataclass()
-class Metadata:
-
+class ModelParams:
     id: str = None
-    owner: str = None
-    create_time: int = None
-    content: str = None
-
-
-@dataclass()
-class JobMeta(Metadata):
-
-    status: JobStatus = JobStatus.NEW
-    datasets: List[str] = None
-
-
-@dataclass()
-class DatasetMeta(Metadata):
-
-    type: DatasetType = DatasetType.IMAGE
-    status: DatasetStatus = DatasetStatus.NEW
-    size: int = 0
-    used_cnt: int = 0
-    request_cnt: int = 0
+    node_address: str = None
+    step: int = 0
+    path: str = None
+    loss: float = 0.0
+    metric_name: str = None
+    metric_value: float = 0.0
+    score: float = 0.0
+    is_aggregate: bool = False

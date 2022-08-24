@@ -31,6 +31,8 @@ __all__ = [
 ] + [
     "JobMeta",
     "DatasetMeta"
+] + [
+    "ModelParams"
 ]
 
 from .computing_resource import *
