@@ -18,8 +18,7 @@ import uuid
 
 import zcommons as zc
 
-from gfl.core import data_pb2
-from gfl.data import constants
+from gfl.data import constants, meta, pramas
 from gfl.core.db import init_sqlite, DB
 from gfl.core.node import GflNode
 
@@ -59,7 +58,7 @@ class DBTest(unittest.TestCase):
         size = zc.units.BinaryUnits.B.convert_from(10, zc.units.BinaryUnits.MiB)
         request_cnt = 0
         used_cnt = 0
-        self.db.add_dataset(data_pb2.DatasetMeta(dataset_id=dataset_id,
+        self.db.add_dataset(meta.DatasetMeta(id=dataset_id,
                                                  owner=owner,
                                                  create_time=create_time,
                                                  status=status,
@@ -97,7 +96,7 @@ class DBTest(unittest.TestCase):
     def test_params(self):
         node = GflNode.new_node()
         job_id = str(uuid.uuid4())
-        params = data_pb2.ModelParams(job_id=job_id,
+        params = pramas.ModelParams(job_id=job_id,
                                       node_address=node.address,
                                       step=3,
                                       path="ipfs://<hash-address>",
@@ -119,7 +118,7 @@ class DBTest(unittest.TestCase):
         owner = node.address
         create_time = zc.time.time_ms()
         dataset_ids = [str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())]
-        self.db.add_job(data_pb2.JobMeta(job_id=job_id, owner=owner, create_time=create_time,
+        self.db.add_job(meta.JobMeta(id=job_id, owner=owner, create_time=create_time,
                                          status=constants.JobStatus.NEW.value, dataset_ids=dataset_ids))
         return job_id, owner, create_time, dataset_ids
 

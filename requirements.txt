@@ -1,7 +1,3 @@
-Flask
-PyYAML
-daemoniker
-eciespy
 grpcio
 ipython
 matplotlib
