@@ -21,11 +21,12 @@ __all__ = [
 import typing
 from dataclasses import dataclass, field
 
+from zcommons.dataclass import DataMixin
 
 # the unit of below memory field is Byte
 
 @dataclass()
-class GPUResource:
+class GPUResource(DataMixin):
 
     gpu_mem_used: int = 0
     gpu_mem_total: int = 0
@@ -33,7 +34,7 @@ class GPUResource:
 
 
 @dataclass()
-class ComputingResource:
+class ComputingResource(DataMixin):
 
     running_job_number: int = 0
     cpu_utilization: int = 0    # [0, 100], means percentage

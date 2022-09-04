@@ -54,7 +54,7 @@ class ServerManager(object):
         job = FLJob(job_path=self.__fs.path.job,
                     job_data=job_data)
         job.save(package_data, overwrite=False)
-        self.__db.add_job(job_data)
+        # self.__db.add_job(job_data)
 
     def push_dataset(self, dataset_data: DatasetData, package_data: bytes):
         dataset = FLDataset(dataset_path=self.__fs.path.dataset,

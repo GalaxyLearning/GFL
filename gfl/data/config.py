@@ -21,16 +21,18 @@ __all__ = [
 
 from dataclasses import dataclass
 
+from zcommons.dataclass import DataMixin
+
 
 @dataclass()
-class JobConfig:
+class JobConfig(DataMixin):
 
     trainer: str
     aggregator: str
 
 
 @dataclass()
-class TrainConfig:
+class TrainConfig(DataMixin):
 
     model: str
     optimizer: str
@@ -41,13 +43,13 @@ class TrainConfig:
 
 
 @dataclass()
-class AggregateConfig:
+class AggregateConfig(DataMixin):
 
     global_epoch: int = 50
 
 
 @dataclass()
-class DatasetConfig:
+class DatasetConfig(DataMixin):
 
     dataset: str
     val_dataset: str = None

@@ -7,4 +7,4 @@ pynvml
 requests_toolbelt
 sqlalchemy
 web3
-zcommons
+zcommons==0.2.1

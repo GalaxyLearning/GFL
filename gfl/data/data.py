@@ -19,12 +19,14 @@ __all__ = [
 
 from dataclasses import dataclass
 
+from zcommons.dataclass import DataMixin
+
 from .config import *
 from .meta import *
 
 
 @dataclass()
-class JobData:
+class JobData(DataMixin):
 
     meta: JobMeta
     job_config: JobConfig
@@ -34,14 +36,31 @@ class JobData:
     @property
     def config(self):
         return {
-            "job": self.job_config,
-            "train": self.train_config,
+            "job": self.job_config.to_json_dict(),
+            "train": self.train_config.to_json_dict(),
+            "aggregate_config": self.aggregate_config.to_json_dict()
+        }
+
+    def to_json_dict(self) -> dict:
+        return {
+            "meta": self.meta.to_json_dict(),
+            "job_config": self.job_config.to_json_dict(),
+            "train_config": self.train_config.to_json_dict(),
             "aggregate_config": self.aggregate_config
         }
 
+    @classmethod
+    def from_json_dict(cls, json_dict: dict) -> "JobData":
+        return JobData(
+            JobMeta.from_json_dict(json_dict["meta"]),
+            JobConfig.from_json_dict(json_dict["job_config"]),
+            TrainConfig.from_json_dict(json_dict["train_config"]),
+            AggregateConfig.from_json_dict(json_dict["aggregate_config"])
+        )
+
 
 @dataclass()
-class DatasetData:
+class DatasetData(DataMixin):
 
     meta: DatasetMeta
     dataset_config: DatasetConfig
@@ -49,5 +68,18 @@ class DatasetData:
     @property
     def config(self):
         return {
-            "dataset": self.dataset_config
+            "dataset": self.dataset_config.to_json_dict()
         }
+
+    def to_json_dict(self) -> dict:
+        return {
+            "meta": self.meta.to_json_dict(),
+            "dataset_config": self.dataset_config.to_json_dict()
+        }
+
+    @classmethod
+    def from_json_dict(cls, json_dict: dict) -> "DataMixin":
+        return DatasetData(
+            DatasetMeta.from_json_dict(json_dict["meta"]),
+            DatasetConfig.from_json_dict(json_dict["dataset_config"])
+        )

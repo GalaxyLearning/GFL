@@ -72,9 +72,9 @@ class FLJob(object):
         # make dirs
         os.makedirs(path, exist_ok=True)
         with open(self._path.meta_file(self.id), "w") as f:
-            f.write(json.dumps(zc.dataclass.asdict(self._data.meta), indent=4))
+            f.write(self._data.meta.to_json())
         with open(self._path.config_file(self.id), "w") as f:
-            f.write(json.dumps(zc.dataclass.asdict(self._data.config), indent=4))
+            f.write(json.dumps(self._data.config))
         os.makedirs(self._path.params_dir(self.id))
         os.makedirs(self._path.metrics_dir(self.id))
         os.makedirs(self._path.reports_dir(self.id))

@@ -18,11 +18,15 @@ __all__ = [
 
 from dataclasses import dataclass
 
+from zcommons.dataclass import DataMixin
+
 
 @dataclass()
-class ModelParams:
-    id: str = None
+class ModelParams(DataMixin):
+
+    job_id: str = None
     node_address: str = None
+    dataset_id: str = None
     step: int = 0
     path: str = None
     loss: float = 0.0
