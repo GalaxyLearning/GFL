@@ -1,6 +1,10 @@
 grpcio
+Flask
+PyYAML
+daemoniker
+eciespy
+grpcio
 ipython
-matplotlib
 protobuf
 psutil
 pynvml
